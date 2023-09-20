@@ -14,9 +14,9 @@
     - [iOS](#ios)
     - [Android](#android)
   - [2. Installing the SDK](#2-installing-the-sdk)
+    - [Flutter Package](#flutter-package)
     - [CocoaPods](#cocoapods)
     - [Android](#android-1)
-    - [Flutter Package](#flutter-package)
   - [3. Usage](#3-usage)
     - [1. Creating a client](#1-creating-a-client)
       - [Example request](#example-request)
@@ -74,6 +74,15 @@
 
 ## 2. Installing the SDK
 Before using the ComplyCube Flutter SDK, you need to set up the environment for both the native iOS and Android SDKs.
+
+
+### Flutter Package
+Finally, install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  complycube_flutter: ^latest_version
+```
 
 ### CocoaPods
 
@@ -184,14 +193,6 @@ dependencies {
     implementation "com.complycube:sdk:+"
     ...
 }
-```
-
-### Flutter Package
-Finally, install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
-
-```yaml
-dependencies:
-  complycube_flutter: ^latest_version
 ```
 
 ## 3. Usage
