@@ -7,26 +7,26 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
 ## Table of contents
 
 - [ComplyCube Flutter SDK](#complycube-flutter-sdk)
-  - [Table of Contents](#table-of-contents)
+  - [Table of contents](#table-of-contents)
   - [Features](#features)
-  - [1. Requirements](#1-requirements)
-    - [iOS](#ios)
-    - [Android](#android)
-  - [2. Installing the SDK](#2-installing-the-sdk)
-    - [Flutter Package](#flutter-package)
-    - [CocoaPods](#cocoapods)
-    - [Android](#android-1)
-  - [3. Usage](#3-usage)
-    - [1. Creating a client](#1-creating-a-client)
+  - [Requirements](#requirements)
+  - [Getting Started](#getting-started)
+    - [1. Installing the SDK](#1-installing-the-sdk)
+      - [Flutter Package](#flutter-package)
+      - [CocoaPods](#cocoapods)
+      - [Application permissions](#application-permissions)
+        - [iOS](#ios)
+        - [Android](#android)
+    - [2. Creating a client](#2-creating-a-client)
       - [Example request](#example-request)
       - [Example response](#example-response)
-    - [2. Creating an SDK token](#2-creating-an-sdk-token)
+    - [3. Creating an SDK token](#3-creating-an-sdk-token)
       - [Example request](#example-request-1)
       - [Example response](#example-response-1)
-    - [3. Prepare stages](#3-prepare-stages)
-    - [4. Client ID and token](#4-client-id-and-token)
-    - [5. Widget Setup](#5-widget-setup)
+    - [4. Prepare the SDK stages](#4-prepare-the-sdk-stages)
+    - [5. Initialize the Flutter Widget](#5-initialize-the-flutter-widget)
     - [6. Perform checks](#6-perform-checks)
+      - [Example response](#example-response-2)
     - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
   - [4. Customization](#4-customization)
     - [Stages](#stages)
@@ -36,11 +36,16 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
       - [Selfie photo and video stage](#selfie-photo-and-video-stage)
       - [Proof of address stage](#proof-of-address-stage)
       - [Adding NFC Support](#adding-nfc-support)
+        - [Pre-requisites (iOS)](#pre-requisites-ios)
     - [Appearance](#appearance)
     - [Localization](#localization)
   - [6. Result handling](#6-result-handling)
   - [7. Error handling](#7-error-handling)
-  - [8. Going live](#8-going-live)
+    - [Result errors](#result-errors)
+  - [8. Custom Event handling](#8-custom-event-handling)
+    - [Handled Events](#handled-events)
+  - [9. Token expiry handler](#9-token-expiry-handler)
+  - [10. Going live](#10-going-live)
   - [Additional info](#additional-info)
 
 ## Features
@@ -458,7 +463,48 @@ final settings = {
 ```
 
 #### Adding NFC Support
-To add NFC support to a document stage for some document types you need to add the following to your settings object:
+
+With the ComplyCube SDK, you can read NFC-enabled identity documents and confirm their authenticity and identity.
+
+To perform an NFC read, you'll first have to scan the document to obtain the necessary key for accessing the chip.
+
+> :information_source: Please get in touch with your **Account Manger** or **[support](https://support.complycube.com/hc/en-gb/requests/new)** to get access to our NFC Enabled Mobile SDK.
+
+The SDK supports the following features
+
+- Basic access control
+- Secure messaging
+- Passive Authentication
+- Active authentication
+- Chip authentication
+
+##### Pre-requisites (iOS)
+
+> :information_source: To use this feature, your app must have the `Near Field Communication Tag Reading` capability enabled. To add this capability to your app, refer to [Apple's guide here](https://help.apple.com/xcode/mac/current/#/dev88ff319e7).
+
+- You must add the following keys to your application `Info.plist` file:
+
+```xml
+<key>NFCReaderUsageDescription</key>
+<string>Required to read from NFC enabled documents</string>
+```
+
+- To read NFC tags correctly, you need to add the following entries to your app target's `Info.plist` file:
+
+```xml
+<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>
+<array>
+  <string>12FC</string>
+</array>
+<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+<array>
+  <string>A0000002471001</string>
+  <string>A0000002472001</string>
+  <string>00000000000000</string>
+  <string>D2760000850101</string>
+</array>
+```
+
 
 ```dart
 final settings = {
@@ -542,20 +588,19 @@ final settings = {
 ```
 
 Supported languages:
-- English - en 🇬🇧
-- French - fr 🇫🇷
-- German - de 🇩🇪
-- Italian - it 🇮🇹
-- Spanish - es 🇪🇸
-- Arabic - ar 🇦🇪
-- Dutch(Netherland) - nl 🇳🇱
-- Norwegian - no 🇳🇴
-- Polish - pl 🇵🇱
-- Portuguese - pt 🇵🇹
-- Swedish - sv 🇸🇪
-- Chinese - zh 🇨🇳
-
-
+- Arabic - `ar` :united_arab_emirates:
+- Dutch - `nl` :netherlands:
+- English - `en` :uk:
+- French - `fr` :fr:
+- German - `de` :de:
+- Hindi - `hi` :india:
+- Italian - `it` :it:
+- Norwegian - `no` :norway:
+- Polish - `po` :poland:
+- Portuguese - `pt` :portugal:
+- Spanish - `es` :es:
+- Swedish - `sv` :sweden:
+- Chinese (Simplified) - `zh` :cn:
 
 ## 6. Result handling
 
@@ -591,19 +636,25 @@ If the SDK experiences any issues, an `ComplyCubeError` object is returned with 
 You can implement the error handling as follows:
 
 ```dart
-void onCancelled() {
-  print("The user cancelled");
-  
+void onCancelled(ComplyCubeError error) {
+  switch (error.code) {
+    case ComplyCubeErrorCode.NoConsentGiven:
+      print("The user didn't give his conscent")
+      break;
+    case ComplyCubeErrorCode.UserExited:
+      print("The user exited the verification flow")
+      break;
+  }
 }
 
 
 void onError(ComplyCubeError error) {
     // Managing errors based on code
   switch (error.code) {
-    case ComplyCubeErrorCode.deleted_resource:
+    case ComplyCubeErrorCode.DeletedResource:
       print("The resource has been deleted")
       break;
-    case ComplianceErrorCode.limit_rate:
+    case ComplianceErrorCode.LimitRate:
         print("The rate limit has been reached")
       break;
     // Add more cases for other error codes
@@ -614,16 +665,118 @@ void onError(ComplyCubeError error) {
 ```
 
 The following error codes are available:
+### Result errors
 
-| Error code                    | Description                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------------|
-| resource_not_found            | The requested resource is deleted.                                          |
-| unauthorized                  | The 'Authorization' header is invalid                                       |
-| invalid_request               | A parameter has been missing                                                |
-| rate_limit_exceeded           | The rate limit has been reached                                             |
-| internal_server_error         | An internal server error has occurred                                       | 
+| Error | Description |
+| --- | ----------- |
+| ```ComplyCubeErrorCode.NotAuthorized``` | The SDK has attempted a request to an endpoint you are not authorized to use.|
+| ```ComplyCubeErrorCode.ExpiredToken``` | The token used to initialize the SDK has expired. Create a new SDK token and restart the flow. |
+| ```ComplyCubeErrorCode.DocumentMandatory``` | A **Document stage** is mandatory with the currently configured stages. |
+| ```ComplyCubeErrorCode.JailBroken``` | The SDK cannot be launched on this device as it has been compromised. |
+| ```ComplyCubeErrorCode.NoDocumentTypes``` | A **Document stage** has been initialized without setting document types. |
+| ```ComplyCubeErrorCode.BiometricStageCount``` | The configuration provided contains duplicate **Selfie photo** or **Selfie video** stages. |
+| ```ComplyCubeErrorCode.UploadError``` | An error occurred during the upload document or selfie upload process. |
+| ```ComplyCubeErrorCode.InvalidCountryCode``` | An invalid country code is provided. |
+| ```ComplyCubeErrorCode.UnsupportedCountryTypeCombination``` | An unsupported country code is provided for a specific document type. |
+| ```ComplyCubeErrorCode.Unknown``` | An unexpected error has occurred. If this keeps occurring, let us know about it. |
+| ```ComplyCubeErrorCode.FlowError``` | An unrecoverable error occurred during the flow.|
 
-## 8. Going live
+## 8. Custom Event handling
+
+
+Custom event handler
+
+If you want to implement your own user tracking, the SDK enables you to insert your custom tracking code for the tracked events.
+
+To incorporate your own tracking, define a function and apply it using withEventHandler when initializing the FlowBuilder:
+
+```dart
+// onCustomEvent with event that contains event name
+void onCustomEvent(ComplyCubeCustomEvent event){
+  switch(event.name){
+    case 'BIOMETRICS_STAGE_SELFIE_CAMERA':
+      print("The client reached capture camera for a selfie")
+      break;
+  }
+}
+
+
+ComplyCubeWidget(
+  settings: settings,
+  ...
+  onCustomEvent: onCustomEvent,
+  ...
+),
+
+```
+
+
+### Handled Events
+Below is the list of events being tracked by the SDK:
+
+| Event | Description |
+| --- | --- |
+| ```BIOMETRICS_STAGE_SELFIE_CAMERA``` | The client reached capture camera for a selfie. |
+| ```BIOMETRICS_STAGE_SELFIE_CAMERA_MANUAL_MODE``` | The client reached manual capture camera for a selfie. |
+| ```BIOMETRICS_STAGE_SELFIE_CAPTURE_GUIDANCE``` | The client has reached the guidance screen showing how to take a good selfie. |
+| ```BIOMETRICS_STAGE_SELFIE_CHECK_QUALITY``` | The client has reached the photo review screen after capturing a selfie photo.. |
+| ```BIOMETRICS_STAGE_VIDEO_ACTION_ONE``` | The client reached the first action in a video selfie |
+| ```BIOMETRICS_STAGE_VIDEO_ACTION_TWO``` | The client reached the second action in a video selfie. |
+| ```BIOMETRICS_STAGE_VIDEO_CAMERA``` | The client reached capture camera for a video selfie. |
+| ```BIOMETRICS_STAGE_VIDEO_CAMERA_MANUAL_MODE``` | The client reached manual capture camera for a video selfie. |
+| ```BIOMETRICS_STAGE_VIDEO_CHECK_QUALITY``` | The client has reached the video review screen after recording a video selfie. |
+| ```CAMERA_ACCESS_PERMISSION``` | The client has reached the permission request screen for camera permissions. |
+| ```COMPLETION_STAGE``` | The client has reached the Completion screen. |
+| ```CONSENT_STAGE``` | The client has reacher the consent stage screen. |
+| ```CONSENT_STAGE_WARNING``` | The client has attempted to exit without giving consent and receive a confirmation prompt. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CHECK_QUALITY_BACK``` | The client reached quality preview screen for the back side of a two-sided ID document. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CHECK_QUALITY_FRONT``` | The client reached quality preview screen for the front side of a two-sided ID document. |
+| ```DOCUMENT_STAGE_ONE_SIDE_CHECK_QUALITY``` | The client reached image quality preview screen for one-sided ID document. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CAMERA_BACK``` | The client reached camera for the back side of a two-sided ID document. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CAMERA_BACK_MANUAL_MODE``` | The client reached manual capture camera for the back side of two-sided ID document. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CAMERA_FRONT``` | The client reached camera stage for the front side of two-sided ID document. |
+| ```DOCUMENT_STAGE_TWO_SIDE_CAMERA_FRONT_MANUAL_MODE``` | The client reached manual capture camera for the back side of two-sided ID document. |
+| ```DOCUMENT_STAGE_ONE_SIDE_CAMERA_MANUAL_MODE``` | The client reached manual capture camera of one-sided ID document. |
+| ```DOCUMENT_STAGE_ONE_SIDE_CAMERA``` | The client reached the capture camera stage for a one-sided ID document. |
+| ```DOCUMENT_STAGE_DOCUMENT_TYPE``` | The client has reached the document type selection screen for an ID Document capture stage. |
+| ```DOCUMENT_STAGE_SELECT_COUNTRY``` | The client reached country selection screen for ID document. |
+| ```DOCUMENT_STAGE_CAPTURE_GUIDANCE``` | The client reached capture guidance screen for ID document. |
+| ```INTRO``` | The client has reached the intro screen. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CHECK_QUALITY_FRONT``` | The client reached quality preview screen for the front side of a two-sided proof of address document. |
+| ```PROOF_OF_ADDRESS_STAGE_CAPTURE_GUIDANCE``` | The client has reach capture guidance screen for proof of address document. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CHECK_QUALITY_BACK``` | The client reached quality preview screen for the back side of a two-sided proof of address document. |
+| ```PROOF_OF_ADDRESS_STAGE_ONE_SIDE_CHECK_QUALITY``` | The client reached quality preview screen for a one-sided proof of address document. |
+| ```PROOF_OF_ADDRESS_STAGE_DOCUMENT_TYPE``` | The client has reached the document type selection screen for a Proof Of Address capture stage. |
+| ```PROOF_OF_ADDRESS_STAGE_ONE_SIDE_CAMERA``` | The client reached capture camera stage for a one-sided proof of address. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CAMERA_FRONT_MANUAL_MODE``` | The client reached manual capture camera for the front side of a two-sided proof address document. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CAMERA_FRONT``` | The client reached capture camera for the front side of a two-sided proof address document. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CAMERA_BACK_MANUAL_MODE``` | The client reached manual capture camera for the back side of a two-sided proof address document. |
+| ```PROOF_OF_ADDRESS_STAGE_ONE_SIDE_CAMERA_MANUAL_MODE``` | The client reached manual capture camera for the front side of a one-sided proof address document. |
+| ```PROOF_OF_ADDRESS_STAGE_SELECT_COUNTRY``` | The client reached country selection screen for a proof of address document. |
+| ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CAMERA_BACK``` | The client reached camera for the back side of a two-sided proof address document. |
+
+
+## 9. Token expiry handler
+
+If you want to automatically manage token expiration, you can use a callback function to generate a new token and seamlessly continue the process with it.
+```dart
+String onTokenExpiry(String token){
+  // Insert custom token renewal code here
+  String new_token = "The new token received";
+  return new_token;
+}
+
+ComplyCubeWidget(
+  settings: settings,
+  ...
+  onTokenExpiry: onTokenExpiry,
+  ...
+),
+
+```
+
+
+## 10. Going live
 
 Check out our handy [integration checklist here](https://docs.complycube.com/documentation/guides/integration-checklist) before you go live.
 
