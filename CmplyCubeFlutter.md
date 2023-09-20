@@ -1,6 +1,6 @@
 # ComplyCube Flutter SDK
 
-![ComplyCube](statics/complycube_loves_flutter.png)
+![ComplyCube](statics/comply_loves_flutter.png)
 
 > :information_source: To access the ComplyCube Mobile SDK, please reach out to your **Account Manager** or visit our **[support page](https://support.complycube.com/hc/en-gb/requests/new)**.
 
