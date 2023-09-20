@@ -6,47 +6,43 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
 
 ## Table of contents
 
-- [ComplyCube Flutter SDK](#complycube-flutter-sdk)
-  - [Table of contents](#table-of-contents)
-  - [Features](#features)
-  - [Requirements](#requirements)
-  - [Getting Started](#getting-started)
-    - [1. Installing the SDK](#1-installing-the-sdk)
-      - [Flutter Package](#flutter-package)
-      - [CocoaPods](#cocoapods)
-      - [Application permissions](#application-permissions)
-        - [iOS](#ios)
-        - [Android](#android)
-    - [2. Creating a client](#2-creating-a-client)
-      - [Example request](#example-request)
-      - [Example response](#example-response)
-    - [3. Creating an SDK token](#3-creating-an-sdk-token)
-      - [Example request](#example-request-1)
-      - [Example response](#example-response-1)
-    - [4. Prepare the SDK stages](#4-prepare-the-sdk-stages)
-    - [5. Initialize the Flutter Widget](#5-initialize-the-flutter-widget)
-    - [6. Perform checks](#6-perform-checks)
-      - [Example response](#example-response-2)
-    - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
-  - [4. Customization](#4-customization)
-    - [Stages](#stages)
-      - [Welcome stage](#welcome-stage)
-      - [Consent stage](#consent-stage)
-      - [Document stage](#document-stage)
-      - [Selfie photo and video stage](#selfie-photo-and-video-stage)
-      - [Proof of address stage](#proof-of-address-stage)
-      - [Adding NFC Support](#adding-nfc-support)
-        - [Pre-requisites (iOS)](#pre-requisites-ios)
-    - [Appearance](#appearance)
-    - [Localization](#localization)
-  - [6. Result handling](#6-result-handling)
-  - [7. Error handling](#7-error-handling)
-    - [Result errors](#result-errors)
-  - [8. Custom Event handling](#8-custom-event-handling)
-    - [Handled Events](#handled-events)
-  - [9. Token expiry handler](#9-token-expiry-handler)
-  - [10. Going live](#10-going-live)
-  - [Additional info](#additional-info)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+  - [1. Installing the SDK](#1-installing-the-sdk)
+    - [Flutter package](#flutter-package)
+    - [CocoaPods](#cocoapods)
+    - [Application permissions](#application-permissions)
+      - [iOS](#ios)
+      - [Android](#android)
+  - [2. Creating a client](#2-creating-a-client)
+    - [Example request](#example-request)
+    - [Example response](#example-response)
+  - [3. Creating an SDK token](#3-creating-an-sdk-token)
+    - [Example request](#example-request-1)
+    - [Example response](#example-response-1)
+  - [4. Prepare the SDK stages](#4-prepare-the-sdk-stages)
+  - [5. Initialize the Flutter Widget](#5-initialize-the-flutter-widget)
+  - [6. Perform checks](#6-perform-checks)
+    - [Example response](#example-response-2)
+  - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
+- [4. Customization](#4-customization)
+  - [Stages](#stages)
+    - [Welcome stage](#welcome-stage)
+    - [Consent stage](#consent-stage)
+    - [Document stage](#document-stage)
+    - [Selfie photo and video stage](#selfie-photo-and-video-stage)
+    - [Proof of address stage](#proof-of-address-stage)
+  - [Look and feel](#look-and-feel)
+  - [Localization](#localization)
+- [Result handling](#result-handling)
+- [Error handling](#error-handling)
+- [Events tracking](#events-tracking)
+- [Custom event handler](#custom-event-handler)
+- [Token expiry Handler](#token-expiry-handler)
+- [NFC capture](#nfc-capture)
+- [Going live](#going-live)
+- [Additional info](#additional-info)
 
 ## Features
 
@@ -78,7 +74,7 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
 
 ### 1. Installing the SDK
 
-#### Flutter Package
+#### Flutter package
 
 Install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
 
@@ -462,86 +458,16 @@ final settings = {
 }
 ```
 
-#### Adding NFC Support
+### Look and feel
 
-With the ComplyCube SDK, you can read NFC-enabled identity documents and confirm their authenticity and identity.
-
-To perform an NFC read, you'll first have to scan the document to obtain the necessary key for accessing the chip.
-
-> :information_source: Please get in touch with your **Account Manger** or **[support](https://support.complycube.com/hc/en-gb/requests/new)** to get access to our NFC Enabled Mobile SDK.
-
-The SDK supports the following features
-
-- Basic access control
-- Secure messaging
-- Passive Authentication
-- Active authentication
-- Chip authentication
-
-##### Pre-requisites (iOS)
-
-> :information_source: To use this feature, your app must have the `Near Field Communication Tag Reading` capability enabled. To add this capability to your app, refer to [Apple's guide here](https://help.apple.com/xcode/mac/current/#/dev88ff319e7).
-
-- You must add the following keys to your application `Info.plist` file:
-
-```xml
-<key>NFCReaderUsageDescription</key>
-<string>Required to read from NFC enabled documents</string>
-```
-
-- To read NFC tags correctly, you need to add the following entries to your app target's `Info.plist` file:
-
-```xml
-<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>
-<array>
-  <string>12FC</string>
-</array>
-<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
-<array>
-  <string>A0000002471001</string>
-  <string>A0000002472001</string>
-  <string>00000000000000</string>
-  <string>D2760000850101</string>
-</array>
-```
-
+The SDK allows you to set colors to match your existing application or brand. You can customize the colors by setting the relevant values when building your flow.
 
 ```dart
 final settings = {
-  ...
-  "stages": [
-    ...
-   {
-        "name": 'documentCapture',
-        "showGuidance": false,
-        "useMLAssistance": true,
-        "retryLimit": 1,
-        "liveCapture": false,
-        "documentTypes": {
-          "passport": true,
-          "driving_license": ['GB', 'US'],
-        },
-        "nfcCapture": true // Add this line to enable NFC
-      },
-      ...
-  ]
-  ...
-}
-```
-
-### Appearance
-
-The SDK allows you to set colors, button radius, and force a specific theme whether it's `dark` or `light` to match your existing application or brand. 
-
-You can customize the colors by setting the relevant values when building your flow. You also have to put it in the settings object:
-
-```dart
-final settings = {
-  ...
   "lookAndFeel": {
     "colors": {
-        "primaryButtonBgColor": '#FFFFFF',
-        },
+      "primaryButtonBgColor": '#FFFFFF',
+    },
     "theme": "dark",
     "buttonRadius": 10,
   }
@@ -566,7 +492,8 @@ Available properties for color customization:
 | headerTitle                    | Title heading text color                        |
 | subheaderTitle                 | Subheading text color                           |
 | linkButtonTextColor            | Links color                                     |
-
+| uiInterfaceStyle               | Set the SDK to use dark mode (`dark`),  light mode (`light`), or system inherited (`inherit`).                     |
+------------------------------------------------------------------------------------
 
 Available properties for `theme` customization:
 
@@ -578,7 +505,7 @@ Available properties for `theme` customization:
 
 ### Localization
 
-The SDK provides multiple languages support. You can set the language by setting the `languages` property in the settings object:
+To specify the language, configure the `language` property within the `settings` object:
 
 ```dart
 final settings = {
@@ -587,7 +514,8 @@ final settings = {
 }
 ```
 
-Supported languages:
+The SDK provides the following language support:
+
 - Arabic - `ar` :united_arab_emirates:
 - Dutch - `nl` :netherlands:
 - English - `en` :uk:
@@ -602,18 +530,18 @@ Supported languages:
 - Swedish - `sv` :sweden:
 - Chinese (Simplified) - `zh` :cn:
 
-## 6. Result handling
+## Result handling
 
-To handle result callbacks, you can use the `onSuccess`, `onCancelled`, and `onError` callbacks provided by the ComplyCube widget:
+To handle result callbacks, you can use the `onSuccess`, `onCancelled`, and `onError` functions provided by the ComplyCube Flutter widget:
 
 ```dart
 void onSuccess(Map<String, dynamic> results) {
   final documentId = results["documentIds"][0];
   final selfieId = results["livePhotoIds"][0];
-  sendToServer(documentId, selfieId); // Send the IDs to your server to perform checks
 
+  // Send the IDs to your server to perform checks
+  sendToServer(documentId, selfieId);
 }
-
 
 ...
 
@@ -629,17 +557,17 @@ Upon an `onSuccess` callback, you can create check requests using the captured d
 
 For example, our default flow, which includes an Identity Document, a Selfie (Live Photo), and Proof of Address, would have a `results` parameter with `"documentIds": ["xxxxx"]`, `"livePhotoIds": ["xxxxx"]`, "liveVideoIds": ["xxxxxx"] and `"poaIds": ["xxxxxx"]`.
 
-## 7. Error handling
+## Error handling
 
-If the SDK experiences any issues, an `ComplyCubeError` object is returned with a string description and the error code as `ComplyCubeErrorCode`.
+If the SDK experiences issues, a `ComplyCubeError` and `ComplyCubeErrorCode` objects are returned with a string description and error code, respectively.
 
-You can implement the error handling as follows:
+You can implement error handling as follows:
 
 ```dart
 void onCancelled(ComplyCubeError error) {
   switch (error.code) {
     case ComplyCubeErrorCode.NoConsentGiven:
-      print("The user didn't give his conscent")
+      print("The user did not provide their consent")
       break;
     case ComplyCubeErrorCode.UserExited:
       print("The user exited the verification flow")
@@ -664,11 +592,10 @@ void onError(ComplyCubeError error) {
 }
 ```
 
-The following error codes are available:
-### Result errors
+The SDK can return the following error codes:
 
-| Error | Description |
-| --- | ----------- |
+| Error code | Description                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------- |
 | ```ComplyCubeErrorCode.NotAuthorized``` | The SDK has attempted a request to an endpoint you are not authorized to use.|
 | ```ComplyCubeErrorCode.ExpiredToken``` | The token used to initialize the SDK has expired. Create a new SDK token and restart the flow. |
 | ```ComplyCubeErrorCode.DocumentMandatory``` | A **Document stage** is mandatory with the currently configured stages. |
@@ -678,40 +605,14 @@ The following error codes are available:
 | ```ComplyCubeErrorCode.UploadError``` | An error occurred during the upload document or selfie upload process. |
 | ```ComplyCubeErrorCode.InvalidCountryCode``` | An invalid country code is provided. |
 | ```ComplyCubeErrorCode.UnsupportedCountryTypeCombination``` | An unsupported country code is provided for a specific document type. |
+| ```ComplyCubeErrorCode.FlowError``` | An unrecoverable error occurred during the flow. |
+| ```ComplyCubeErrorCode.MissingToken``` | Attempted to launch the SDK without setting the SDK token. |
+| ```ComplyCubeErrorCode.DuplicateStages``` | Launch configuration contains duplicate stages. |
+| ```ComplyCubeErrorCode.UploadRequireGuidance``` | If `liveCapture` is set to `false`, enabling the guidance feature is required. This can be done by setting `isGuidanceEnabled` to `true`.|
 | ```ComplyCubeErrorCode.Unknown``` | An unexpected error has occurred. If this keeps occurring, let us know about it. |
-| ```ComplyCubeErrorCode.FlowError``` | An unrecoverable error occurred during the flow.|
 
-## 8. Custom Event handling
+## Events tracking
 
-
-Custom event handler
-
-If you want to implement your own user tracking, the SDK enables you to insert your custom tracking code for the tracked events.
-
-To incorporate your own tracking, define a function and apply it using withEventHandler when initializing the FlowBuilder:
-
-```dart
-// onCustomEvent with event that contains event name
-void onCustomEvent(ComplyCubeCustomEvent event){
-  switch(event.name){
-    case 'BIOMETRICS_STAGE_SELFIE_CAMERA':
-      print("The client reached capture camera for a selfie")
-      break;
-  }
-}
-
-
-ComplyCubeWidget(
-  settings: settings,
-  ...
-  onCustomEvent: onCustomEvent,
-  ...
-),
-
-```
-
-
-### Handled Events
 Below is the list of events being tracked by the SDK:
 
 | Event | Description |
@@ -755,14 +656,39 @@ Below is the list of events being tracked by the SDK:
 | ```PROOF_OF_ADDRESS_STAGE_SELECT_COUNTRY``` | The client reached country selection screen for a proof of address document. |
 | ```PROOF_OF_ADDRESS_STAGE_TWO_SIDE_CAMERA_BACK``` | The client reached camera for the back side of a two-sided proof address document. |
 
+## Custom event handler
 
-## 9. Token expiry handler
+If you want to implement your own user tracking, the SDK enables you to insert your custom tracking code for the [tracked events](#events-tracking).
+
+To incorporate your own tracking, define a function and apply it using the `onCustomEvent` property when initializing the ComplyCube Flutter widget:
+
+```dart
+// onCustomEvent with event that contains event name
+void onCustomEvent(ComplyCubeCustomEvent event){
+  switch(event.name){
+    case 'BIOMETRICS_STAGE_SELFIE_CAMERA':
+      print("The client reached capture camera for a selfie")
+      break;
+  }
+}
+
+
+ComplyCubeWidget(
+  settings: settings,
+  ...
+  onCustomEvent: onCustomEvent,
+  ...
+),
+```
+
+## Token expiry Handler
 
 If you want to automatically manage token expiration, you can use a callback function to generate a new token and seamlessly continue the process with it.
+
 ```dart
 String onTokenExpiry(String token){
   // Insert custom token renewal code here
-  String new_token = "The new token received";
+  String new_token = "New token value";
   return new_token;
 }
 
@@ -772,11 +698,53 @@ ComplyCubeWidget(
   onTokenExpiry: onTokenExpiry,
   ...
 ),
-
 ```
 
+## NFC capture
 
-## 10. Going live
+- [iOS requirements](https://github.com/complycube/complycube-ios-sdk#pre-requisites)
+
+With the ComplyCube SDK, you can read NFC-enabled identity documents and confirm their authenticity and identity.
+
+To perform an NFC read, you'll first have to scan the document to obtain the necessary key for accessing the chip.
+
+> :information_source: Please get in touch with your **Account Manager** or **[support](https://support.complycube.com/hc/en-gb/requests/new)** to get access to our NFC Enabled Mobile SDK.
+
+The SDK supports the following features
+
+- Basic access control
+- Secure messaging
+- Passive Authentication
+- Active authentication
+- Chip authentication
+
+The **NFC stage** can only be initialized following a **Document stage**, otherwise you will encounter a `ComplyCubeErrorCode.DocumentMandatory` error.
+
+```dart
+final settings = {
+  ...
+  "stages": [
+    ...
+    {
+      "name": 'documentCapture',
+      "showGuidance": false,
+      "useMLAssistance": true,
+      "retryLimit": 1,
+      "liveCapture": false,
+      "documentTypes": {
+        "passport": true,
+        "driving_license": ['GB', 'US'],
+      },
+      // Add this property to enable NFC
+      "nfcCapture": true
+    },
+    ...
+  ]
+  ...
+};
+```
+
+## Going live
 
 Check out our handy [integration checklist here](https://docs.complycube.com/documentation/guides/integration-checklist) before you go live.
 
