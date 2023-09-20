@@ -1,12 +1,11 @@
 # ComplyCube Flutter SDK
 
-![ComplyCube](statics/comply_loves_flutter.png)
+The ComplyCube Flutter SDK makes it quick and easy to build a frictionless customer onboarding and biometric re-authentication experience in your Flutter app. We provide powerful, smart, and customizable UI screens that can be used out-of-the-box to capture the data you need for identity verification.
 
-> :information_source: To access the ComplyCube Mobile SDK, please reach out to your **Account Manager** or visit our **[support page](https://support.complycube.com/hc/en-gb/requests/new)**.
+> :information_source: Please get in touch with your **Account Manager** or **[support](https://support.complycube.com/hc/en-gb/requests/new)** to get access to our Mobile SDK.
 
-> :warning: If you were using our previous generation SDK (deprecated), we recommend migrating to this version. Feel free to contact our support team if you have any questions.
+## Table of contents
 
-## Table of Contents
 - [ComplyCube Flutter SDK](#complycube-flutter-sdk)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
@@ -45,15 +44,19 @@
   - [Additional info](#additional-info)
 
 ## Features
-![ComplyCube iOS SDK illustrations](https://assets.complycube.com/images/complycube-ios-sdk-github.jpg)
 
-**Native & Intuitive UI**: We offer mobile-native screens to guide your customers in capturing their selfies, video recordings, government-issued IDs (such as passports, driving licenses, and residence permits), and proof of address documents (bank statements and utility bills).
+<img 
+	src="https://assets.complycube.com/images/complycube-ios-sdk-github.jpg" 
+	alt="ComplyCube iOS SDK illustrations."
+/>
+
+**Native & intuitive UI**: We provide mobile-native screens that guide your customers in capturing their selfies, video recordings, government-issued IDs (such as passports, driving licenses, and residence permits), and proof of address documents (bank statements and utility bills)
 
 **Liveness**: Our market-leading liveness detection provides accurate and extremely fast presence detection on your customers' selfies (3D Passive and Active) and documents to prevent fraud and protect your business. It detects and deters several spoofing vectors, including **printed photo attacks**, **printed mask attacks**, **video replay attacks**, and **3D mask attacks**.
 
 **Auto-capture**: Our UI screens attempt to auto-capture your customer's documents and selfies and run quality checks to ensure that only legible captures are processed by our authentication service.
 
-**Branding & Customization**: You can customize the experience by adding your brand colors and text. Furthermore, screens can be added and removed.
+**Branding & customization**: You can customize the experience by adding your brand colors and text. Furthermore, screens can be added and removed.
 
 **ComplyCube API**: Our [REST API](https://docs.complycube.com/api-reference) can be used to build entirely custom flows on top of this native mobile UI layer. We offer backend SDK libraries ([Node.js](https://www.npmjs.com/package/@complycube/api), [PHP](https://github.com/complycube/complycube-php), [Python](https://pypi.org/project/complycube/), and [.NET](https://www.nuget.org/packages/Complycube/)) to facilitate custom integrations.
 
@@ -61,143 +64,126 @@
 
 **Secure**: Our GPDR, CCPA, and ISO-certified platform ensure secure and data privacy-compliant end-to-end capture.
 
-## 1. Requirements
-### iOS
-* Swift 5
-* iOS 13 and above
-* Xcode 13 and above
+## Requirements
 
-### Android
-* Android 5.0 (API level 21) and above
-* AndroidX
-* Kotlin 1.5 and above
+- [iOS requirements](https://github.com/complycube/complycube-ios-sdk#requirements)
+- [Android requirements](https://github.com/complycube/complycube-android-sdk#requirements)
 
-## 2. Installing the SDK
-Before using the ComplyCube Flutter SDK, you need to set up the environment for both the native iOS and Android SDKs.
+## Getting Started
 
+### 1. Installing the SDK
 
-### Flutter Package
-Finally, install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
+#### Flutter Package
+
+Install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
   complycube_flutter: ^latest_version
 ```
 
-### CocoaPods
+#### CocoaPods
 
 1. Before using the ComplyCube SDK, install the Cocoapods Artifactory plugin by running the following command in your terminal:
 
-```bash
-gem install cocoapods-art
-```
+   ```bash
+   gem install cocoapods-art
+   ```
 
-2. To add the library, copy your repository credentials into a `.netrc` file to your home directory and set up the repository:
+2. To add the library, copy your repository credentials into a `.netrc` file to your home directory and setup the repository:
 
-```bash
-pod repo-art add cc-cocoapods-release-local "https://complycuberepo.jfrog.io/artifactory/api/pods/cc-cocoapods-release-local"
-```
+   ```bash
+   pod repo-art add cc-cocoapods-release-local "https://complycuberepo.jfrog.io/artifactory/api/pods/cc-cocoapods-release-local"
+   ```
 
-3. Add plugin repos and install the pod using your `ios/Podfile`.
+3. Add plugin repos by adding the snippet below to the top of your `ios/PodFile` and install the pod using the `pod install` command.
 
-```ruby
+   ```ruby
+   plugin 'cocoapods-art', :sources => [
+     'cc-cocoapods-release-local',
+     'trunk'
+   ]
+   ...
 
+   platform :ios, '13.0' # Or above
 
-plugin 'cocoapods-art', :sources => [
-  'cc-cocoapods-release-local'
-]
+   target 'YourApp' do
+       ...
+       pod 'ComplyCube'
+       ...
+   end
+   ```
 
-...
+#### Application permissions
 
-platform :ios, '13.0' # Or above
-
-target 'YourApp' do
-
-    use_frameworks!
-    use_modular_headers!
-
-    ...
-    pod 'ComplyCubeMobileSDK'
-    ...
-end
-```
-
-**Application Permissions**
+##### iOS
 
 Our SDK uses the device camera and microphone for capture. You must add the following keys to your application `Info.plist` file.
 
-* `NSCameraUsageDescription`
+- `NSCameraUsageDescription`
 
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>Used to capture facials biometrics and documents</string>
 ```
 
-* `NSMicrophoneUsageDescription`
+- `NSMicrophoneUsageDescription`
 
 ```xml
 <key>NSMicrophoneUsageDescription</key>
 <string>Used to capture video biometrics</string>
 ```
 
-### Android
-Start by adding your access credentials for the ComplyCube SDK repository to the `android/gradle.properties` file of your **mobile app**:
+##### Android
+
+Start by adding your access credentials for the ComplyCube SDK repository to the `gradle.properties` file of your **mobile app**:
 
 ```gradle
 artifactory_user= "USERNAME"
 artifactory_password= "ENCRYPTED PASS"
-artifactory_contextUrl= "https://complycuberepo.jfrog.io/artifactory/"
-
+artifactory_contextUrl= https://complycuberepo.jfrog.io/artifactory
 ```
 
-Then update your application `android/build.gradle` file with the ComplyCube SDK repository maven settings and SDK dependency:
+Then update your application `build.gradle` file with the ComplyCube SDK repository maven settings and SDK dependency:
 
 ```gradle
-...
 buildscript {
+    ...
     repositories {
-        jcenter()
         ...
+        artifactory {
+            contextUrl = "${artifactory_contextUrl}"  
+            resolve {
+                repository {
+                    repoKey = 'cc-gradle-release-local'
+                    username = "${artifactory_user}"
+                    password = "${artifactory_password}"
+                    maven = true
+                }
+            }
+        }
     }
     dependencies {
         ....
         //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+        implementation "com.complycube:sdk:+"
     }
 }
 
-...
 plugins {
     ...
     id "com.jfrog.artifactory"
 }
-
-repositories {
-    mavenCentral()
-    google()
-    artifactory {
-        contextUrl = "${artifactory_contextUrl}"  
-        resolve {
-            repository {
-                repoKey = 'cc-gradle-release-local'
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-                maven = true
-
-            }
-        }
-    }
-}
-
-dependencies {
-    implementation "com.complycube:sdk:+"
-    ...
-}
 ```
 
-## 3. Usage
-### 1. Creating a client
-Before launching the SDK, your app must first [create a client](https://docs.complycube.com/api-reference/clients/create-a-client) using the ComplyCube API. A client represents the individual on whom you need to perform identity verification checks on. A client is required to generate an SDK token. This must be done on your mobile app backend server.
+### 2. Creating a client
+
+Before launching the SDK, your app must first [create a client](https://docs.complycube.com/api-reference/clients/create-a-client) using the ComplyCube API.
+
+A client represents the individual on whom you need to perform identity verification checks on. A client is required to generate an SDK token.
+
+This must be done on your **mobile app backend** server.
 
 #### Example request
 
@@ -205,14 +191,13 @@ Before launching the SDK, your app must first [create a client](https://docs.com
 curl -X POST https://api.complycube.com/v1/clients \
      -H 'Authorization: <YOUR_API_KEY>' \
      -H 'Content-Type: application/json' \
-     -d '{
-          "type": "person",
-          "email": "john.doe@example.com",
-          "personDetails":{
-              "firstName": "Jane",
-              "lastName" :"Doe"
-          }
-       }'
+     -d '{  "type": "person",
+            "email": "john.doe@example.com",
+            "personDetails":{
+                "firstName": "Jane",
+                "lastName" :"Doe"
+            }
+         }'
 ```
 
 #### Example response
@@ -233,20 +218,22 @@ The response will contain an id (the Client ID). It is required for the next ste
 }
 ```
 
-### 2. Creating an SDK token
-SDK Tokens enable clients to securely send personal data from your mobile app to ComplyCube. [To learn more about our SDK Token endpoint](https://docs.complycube.com/api-reference/other-resources/tokens).
+### 3. Creating an SDK token
 
-You must generate a new token each time you initialize the ComplyCube Web SDK.
+**SDK Tokens** enable clients to securely send personal data from your **mobile app** to ComplyCube.
+[To learn more about our SDK Token endpoint](https://docs.complycube.com/api-reference/other-resources/tokens).
+
+> You must generate a new token each time you initialize the ComplyCube Web SDK.
 
 #### Example request
 
-```curl
+```bash
 curl -X POST https://api.complycube.com/v1/tokens \
      -H 'Authorization: <YOUR_API_KEY>' \
      -H 'Content-Type: application/json' \
      -d '{
-          	"clientId":"CLIENT_ID",
-          	"appId": "com.yourcompany.yourapp"
+           "clientId":"CLIENT_ID",
+           "appId": "com.complycube.SampleApp"
          }'
 ```
 
@@ -258,12 +245,13 @@ curl -X POST https://api.complycube.com/v1/tokens \
 }
 ```
 
-### 3. Prepare stages
+### 4. Prepare the SDK stages
 
-Set up the stages you want to include in a setting object so you can use it in the Flutter widget.
+Initialize the `stages` in a `settings` object with the stages you wish to include so that it can be used in the Flutter component.
 
 ```dart
 import 'package:complycube_flutter/ComplyCubeMobileSDK.dart';
+
 final settings = {
   ...
   "stages": [
@@ -287,21 +275,20 @@ final settings = {
 }
 ```
 
-### 4. Client ID and token
+### 5. Initialize the Flutter Widget
 
-Set up the client id and token within the setting object:
+Initialize the `settings` object by setting the SDK token, client ID, and the stages of the flow.
 
 ```dart
 final settings = {
   "clientID": "<CLIENT_ID>",
   "clientToken": "<CLIENT_TOKEN>",
+  "stages": [...],
   ...
 }
 ```
 
-### 5. Widget Setup
-
-Now you can use the ComplyCube widget in your Flutter app:
+You can now incorporate the ComplyCube Flutter widget into your screen.
 
 ```dart
 return MaterialApp(
@@ -320,19 +307,21 @@ Using the results returned in the `onSuccess` callback, you can trigger your mob
 
 For example, use the result of a selfie and document capture as follows:
 
-```dart
-void onSuccess(Map<String, dynamic> results) {
-  final documentId = results["documentIds"][0];
-  final selfieId = results["livePhotoIds"][0];
+- `result.documentId` to run a [Document Check](https://docs.complycube.com/api-reference/check-types/document-check)
 
-  // Now you have the Document ID and Selfie ID in the variables documentId and selfieId ...
-  print("Document ID: $documentId");
-  print("Selfie ID: $selfieId");
+- `result.documentId` and `result.livePhotoId` to run an [Identity Check](https://docs.complycube.com/api-reference/check-types/identity-check)
 
-  // Perform further actions with documentId and selfieId as needed ...
+#### Example response
 
-}
-
+```bash
+curl -X POST https://api.complycube.com/v1/checks \
+     -H 'Authorization: <YOUR_API_KEY>' \
+     -H 'Content-Type: application/json' \
+     -d '{
+            "clientId":"CLIENT_ID",
+            "type": "document_check",
+            "documentId":"DOCUMENT_ID"
+         }'
 ```
 
 ### 7. Setup webhooks and retrieve results
@@ -347,7 +336,7 @@ Your mobile backend can retrieve all check results using our API.
 
 ### Stages
 
-Each stage in the flow can be customized to create the ideal journey for your clients. Every stage must be in the `stages` array in the settings object.
+Each stage in the flow can be customized to create the ideal journey for your clients. Every stage must be in the stages array in the settings object.
 
 Stages can be a string or an object that contains the stage’s customizations.
 
@@ -399,13 +388,13 @@ This stage allows clients to select the type of identity document they would lik
 - Set the document issuing countries they are allowed for each document type.
 - Add or remove automated capture using smart assistance.
 - Show or hide the instruction screens before capture.
-- Set a retry limit to allow clients to
-
- progress the journey regardless of capture quality.
+- Set a retry limit to allow clients to progress the journey regardless of capture quality.
 
 > If you provide only one document type, the document type selection screen will be skipped. The country selection screen will be skipped if you provide only a single country for a given document type.
 
 You can remove the information screens shown before camera captures by enabling or disabling guidance. You should only consider omitting this if you have clearly informed your customer of the capture steps required.
+
+> :warning: Please note the retryLimit you set here will take precedence over the retry limit that has been set globally in the [developer console](https://portal.complycube.com/automations).
 
 ```dart
 final settings = {
