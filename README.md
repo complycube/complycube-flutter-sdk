@@ -47,8 +47,8 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
 ## Features
 
 <img 
-	src="https://assets.complycube.com/images/complycube-ios-sdk-github.jpg" 
-	alt="ComplyCube iOS SDK illustrations."
+  src="https://assets.complycube.com/images/complycube-ios-sdk-github.jpg" 
+  alt="ComplyCube iOS SDK illustrations."
 />
 
 **Native & intuitive UI**: We provide mobile-native screens that guide your customers in capturing their selfies, video recordings, government-issued IDs (such as passports, driving licenses, and residence permits), and proof of address documents (bank statements and utility bills)
@@ -468,7 +468,7 @@ final settings = {
     "colors": {
       "primaryButtonBgColor": '#FFFFFF',
     },
-    "theme": "dark",
+    "uiInterfaceStyle": "dark",
     "buttonRadius": 10,
   }
 }
@@ -495,7 +495,7 @@ Available properties for color customization:
 | uiInterfaceStyle               | Set the SDK to use dark mode (`dark`),  light mode (`light`), or system inherited (`inherit`).                     |
 ------------------------------------------------------------------------------------
 
-Available properties for `theme` customization:
+Available properties for `uiInterfaceStyle` customization:
 
 | Property                       | Description                                     |
 | ------------------------------ | ----------------------------------------------- |
