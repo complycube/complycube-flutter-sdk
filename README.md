@@ -82,6 +82,15 @@ Install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
 dependencies:
   complycube_flutter: ^latest_version
 ```
+Next, add your token from [jFrog](https://complycuberepo.jfrog.io/ui/repos/tree/General/cc-pub-release-local) to gain access to the artifactory repository. This can be done with the following command:
+
+```bash
+dart pub token add "https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-release-local"
+```
+and
+```bash
+dart pub get
+```
 
 #### CocoaPods
 
