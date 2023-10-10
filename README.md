@@ -6,46 +6,43 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
 
 ## Table of contents
 
-- [ComplyCube Flutter SDK](#complycube-flutter-sdk)
-  - [Table of contents](#table-of-contents)
-  - [Features](#features)
-  - [Requirements](#requirements)
-  - [Getting Started](#getting-started)
-    - [1. Installing the SDK](#1-installing-the-sdk)
-      - [Flutter package](#flutter-package)
-      - [CocoaPods](#cocoapods)
-      - [Application permissions](#application-permissions)
-        - [iOS](#ios)
-        - [Android](#android)
-    - [2. Creating a client](#2-creating-a-client)
-      - [Example request](#example-request)
-      - [Example response](#example-response)
-    - [3. Creating an SDK token](#3-creating-an-sdk-token)
-      - [Example request](#example-request-1)
-      - [Example response](#example-response-1)
-    - [4. Prepare the SDK stages](#4-prepare-the-sdk-stages)
-    - [5. Initialize the Flutter Widget](#5-initialize-the-flutter-widget)
-    - [6. Perform checks](#6-perform-checks)
-      - [Example response](#example-response-2)
-    - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
-  - [4. Customization](#4-customization)
-    - [Stages](#stages)
-      - [Welcome stage](#welcome-stage)
-      - [Consent stage](#consent-stage)
-      - [Document stage](#document-stage)
-      - [Selfie photo and video stage](#selfie-photo-and-video-stage)
-      - [Proof of address stage](#proof-of-address-stage)
-    - [Look and feel](#look-and-feel)
-  - [| uiInterfaceStyle               | Set the SDK to use dark mode (`dark`),  light mode (`light`), or system inherited (`inherit`).                     |](#-uiinterfacestyle----------------set-the-sdk-to-use-dark-mode-dark--light-mode-light-or-system-inherited-inherit---------------------)
-    - [Localization](#localization)
-  - [Result handling](#result-handling)
-  - [Error handling](#error-handling)
-  - [Events tracking](#events-tracking)
-  - [Custom event handler](#custom-event-handler)
-  - [Token expiry Handler](#token-expiry-handler)
-  - [NFC capture](#nfc-capture)
-  - [Going live](#going-live)
-  - [Additional info](#additional-info)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+  - [1. Installing the SDK](#1-installing-the-sdk)
+    - [Flutter package](#flutter-package)
+    - [CocoaPods](#cocoapods)
+    - [Application permissions](#application-permissions)
+      - [iOS](#ios)
+      - [Android](#android)
+  - [2. Creating a client](#2-creating-a-client)
+    - [Example request](#example-request)
+    - [Example response](#example-response)
+  - [3. Creating an SDK token](#3-creating-an-sdk-token)
+    - [Example request](#example-request-1)
+    - [Example response](#example-response-1)
+  - [4. Prepare the SDK stages](#4-prepare-the-sdk-stages)
+  - [5. Initialize the Flutter Widget](#5-initialize-the-flutter-widget)
+  - [6. Perform checks](#6-perform-checks)
+    - [Example response](#example-response-2)
+  - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
+- [4. Customization](#4-customization)
+  - [Stages](#stages)
+    - [Welcome stage](#welcome-stage)
+    - [Consent stage](#consent-stage)
+    - [Document stage](#document-stage)
+    - [Selfie photo and video stage](#selfie-photo-and-video-stage)
+    - [Proof of address stage](#proof-of-address-stage)
+  - [Look and feel](#look-and-feel)
+  - [Localization](#localization)
+- [Result handling](#result-handling)
+- [Error handling](#error-handling)
+- [Events tracking](#events-tracking)
+- [Custom event handler](#custom-event-handler)
+- [Token expiry Handler](#token-expiry-handler)
+- [NFC capture](#nfc-capture)
+- [Going live](#going-live)
+- [Additional info](#additional-info)
 
 ## Features
 
@@ -83,7 +80,7 @@ Install the ComplyCube Flutter package by adding it to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  complycube:
+  complycube: 
     hosted: 'https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-dev-local/'
     version: ^0.0.1
 ```
@@ -190,6 +187,19 @@ plugins {
     ...
     id "com.jfrog.artifactory"
 }
+```
+
+The you can add the following line to disable the header shown on ComplyCube SDK Widget on `styles.xml`:
+
+```xml
+...
+<style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+  ...
+  <item name="windowActionBar">false</item>
+  <item name="windowNoTitle">true</item>
+  ...
+</style>
+...
 ```
 
 ### 2. Creating a client
