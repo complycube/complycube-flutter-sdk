@@ -84,7 +84,7 @@ dependencies:
     hosted: 'https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-dev-local/'
     version: ^0.0.1
 ```
-Next, add your token from [jFrog](https://complycuberepo.jfrog.io/ui/repos/tree/General/cc-pub-release-local) to gain access to the artifactory repository. You can watch our [tutorial](https://ior.ad/9vIe?iframeHash=watchsteps-1) on how to get your token from jFrog. Then use this command:
+Next, add your token from [jFrog](https://complycuberepo.jfrog.io/ui/repos/tree/General/cc-pub-release-local) to gain access to the artifactory repository. If you're unsure how to obtain your jFrog token, please refer to our [tutorial](https://ior.ad/9vIe?iframeHash=watchsteps-1). Once you have the token, execute the following command:
 
 ```bash
 dart pub token add "https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-release-local"
@@ -189,7 +189,7 @@ plugins {
 }
 ```
 
-The you can add the following line to disable the header shown on ComplyCube SDK Widget on `styles.xml`:
+To disable the header display in the ComplyCube SDK Widget, please insert the following line into `styles.xml`:
 
 ```xml
 ...
