@@ -26,7 +26,7 @@ The ComplyCube Flutter SDK makes it quick and easy to build a frictionless custo
   - [6. Perform checks](#6-perform-checks)
     - [Example response](#example-response-2)
   - [7. Setup webhooks and retrieve results](#7-setup-webhooks-and-retrieve-results)
-- [4. Customization](#4-customization)
+- [Customization](#customization)
   - [Stages](#stages)
     - [Welcome stage](#welcome-stage)
     - [Consent stage](#consent-stage)
@@ -357,7 +357,7 @@ Follow our [webhook guide](https://docs.complycube.com/documentation/guides/webh
 
 Your mobile backend can retrieve all check results using our API.
 
-## 4. Customization
+## Customization
 
 ### Stages
 
