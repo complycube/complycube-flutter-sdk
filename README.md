@@ -84,7 +84,7 @@ dependencies:
     hosted: 'https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-dev-local/'
     version: ^0.0.1
 ```
-Next, add your token from [jFrog](https://complycuberepo.jfrog.io/ui/repos/tree/General/cc-pub-release-local) to gain access to the artifactory repository. This can be done with the following command:
+Next, add your token from [jFrog](https://complycuberepo.jfrog.io/ui/repos/tree/General/cc-pub-release-local) to gain access to the artifactory repository. You can watch our [tutorial](https://ior.ad/9vIe?iframeHash=watchsteps-1) on how to get your token from jFrog. Then use this command:
 
 ```bash
 dart pub token add "https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-release-local"
