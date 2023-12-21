@@ -125,8 +125,6 @@ dart pub get
        ...
        ...
    end
-
-   
   post_install do |installer|
     installer.pods_project.targets.each do |target|
       flutter_additional_ios_build_settings(target)
@@ -137,9 +135,7 @@ dart pub get
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.1'
       end
     end
-  end
-
-   ```
+  end```
 
 #### Application permissions
 
