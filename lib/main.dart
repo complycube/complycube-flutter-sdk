@@ -44,18 +44,18 @@ class _MyAppState extends State<MyApp> {
           child: ComplyCubeWidget(
             settings: const {
               'clientID': "<CLIENT_ID>",
-              'clientToken': "<TOKEN>",
+              'clientToken': "<SDK_TOKEN>",
               'stages': [
-                // {
-                //   'name': "intro",
-                //   'heading': 'Am from Java script',
-                //   'message': 'A message for our users',
-                // },
+                {
+                    'name': 'intro',
+                    'heading': 'Custom Screen Title',
+                    'message': 'Custom welcome message.',
+                },
                 {
                   'name': 'documentCapture',
                   'documentTypes': {
                     'passport': true,
-                    'driving_license': ['GB', 'FR', 'DZ'],
+                    'driving_license': ['GB', 'US'],
                   },
                 },
                 {
