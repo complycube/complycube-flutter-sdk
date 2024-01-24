@@ -62,8 +62,10 @@ class _MyAppState extends State<MyApp> {
                   'name': 'faceCapture',
                 }
               ],
-              'scheme': {
-                // primaryButtonBgColor: '#FFFFFF',
+              "lookAndFeel": {
+                "primaryButtonBgColor": '#FFFFFF',
+                "uiInterfaceStyle": "dark",
+                "buttonRadius": 10,
               },
             },
             // ignore: unnecessary_const
