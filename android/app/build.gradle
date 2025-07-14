@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.complycube.flutter.complycube_example"
+    namespace "com.complycube.flutter.complycube"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -59,6 +59,18 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                    'META-INF/DEPENDENCIES',
+                    'META-INF/LICENSE',
+                    'META-INF/LICENSE.txt',
+                    'META-INF/NOTICE',
+                    'META-INF/NOTICE.txt'
+            ]
+        }
+    }
 }
 
 flutter {
@@ -67,4 +79,12 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
 }
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.fasterxml.jackson.core:jackson-core:2.13.5'
+    }
+}
+

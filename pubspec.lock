@@ -45,10 +45,10 @@ packages:
     dependency: "direct main"
     description:
       name: complycube
-      sha256: b9d93097b7d744581755a7c87c78ea67fe3420babf5ed014c23bdff3689e3446
+      sha256: da13e2321f5e3a9da9031e751099daf04faab7b0e204d3ff26acba958df9bdc5
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.5"
+    version: "0.0.6"
   cupertino_icons:
     dependency: "direct main"
     description:
