@@ -7,7 +7,22 @@ This repository provides a pre-built UI that uses the ComplyCube SDK. It guides 
 1. [Create a Client ID](https://docs.complycube.com/documentation/guides/mobile-sdk-guide/mobile-sdk-integration-guide#id-2.-create-a-client).
 2. [Generate an SDK token](https://docs.complycube.com/documentation/guides/mobile-sdk-guide/mobile-sdk-integration-guide#id-3.-generate-an-sdk-token).
 3. In the `main.dart` file, replace `CLIENT_ID` and `SDK_TOKEN` with the generated values from the previous steps.
-4. Run the app:
+
+4. Install dependencies:
+
+   ```bash
+   flutter pub get
+   ```
+
+5. Navigate to the `ios/` directory and install iOS pods:
+
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   ```
+
+6. Run the app:
 
    ```bash
    flutter run
