@@ -8,42 +8,87 @@ This repository provides a pre-built UI that uses the ComplyCube SDK. It guides 
 
 ### Installing Flutter dependencies
 
-#### Add Repository Token for Dart
+### Install the SDK
 
-1. To access the ComplyCube repository, you must add a repository token. Run the following command in your terminal:
+Install the Flutter library by running:
 
-```bash
-dart pub token add "https://complycuberepo.jfrog.io/artifactory/api/pub/cc-pub-release-local"
+```sh
+flutter pub add complycube
 ```
 
-After executing the command, you will need to add the token provided by the jFrog repository.
+### CocoaPods
 
-#### Install Dart packages
+1. Before using the ComplyCube SDK, install the CocoaPods plugin by running the following command in your terminal:
 
-1. To install the required Dart packages, run the following command:
+    ```sh
+    sudo gem install cocoapods
+    ```
 
-```bash
-dart pub get
-```
+2. Open your `ios/Podfile` and add the following configuration:
 
-### Install CocoaPods
+    ```ruby
+    source 'https://github.com/CocoaPods/Specs.git'
 
-1. Before using the ComplyCube SDK, install the CocoaPods Artifactory plugin by running the following command in your terminal:
+    platform :iOS, '13.0'
 
-   ```bash
-   gem install cocoapods-art
-   ```
+    target 'YourApp' do
+        use_frameworks!
+        use_modular_headers!
 
-2. To add the library, copy your repository credentials into a `.netrc` file to your home directory and setup the repository:
+        # Other existing pod configurations
 
-   ```bash
-   pod repo-art add cc-cocoapods-release-local "https://complycuberepo.jfrog.io/artifactory/api/pods/cc-cocoapods-release-local"
-   ```
+        post_install do |installer|
+            installer.pods_project.targets.each do |target|
+                target.build_configurations.each do |build_configuration|
+                    build_configuration.build_settings['ENABLE_BITCODE'] = 'NO'
+                    build_configuration.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+                    build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.1'
+                    build_configuration.build_settings['ARCHS'] = ['$(ARCHS_STANDARD)', 'x86_64']
+                    build_configuration.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ['arm64', 'arm64e', 'armv7', 'armv7s']
+                    build_configuration.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+                end
+            end
+        end
 
-### Add Artifactory Credentials for Gradle
+        $static_frameworks = [
+            # pods that must be built statically
+        ]
 
-1. In the `android/gradle.properties` file, replace `ARTIFACTORY_USER` and `ARTIFACTORY_PASSWORD` with your JFrog Username and the encrypted JFrog Password.
+        pre_install do |installer|
+            Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
 
+            installer.pod_targets.each do |target|
+                if $static_frameworks.include?(target.name)
+                    puts "Overriding the static_framework method for #{target.name}"
+                    def target.build_type;
+                        Pod::BuildType.static_library
+                    end
+                end
+            end
+        end
+    end
+    ```
+
+3. Save the `Podfile`.
+
+4. Run `pod install` in your `ios` directory to install the pods and apply the configurations.
+
+#### Application Permissions
+
+Our SDK uses the device camera and microphone for capture. You must add the following keys to your application's `ios/Info.plist` file.
+
+1. `NSCameraUsageDescription`
+    ```xml
+    <key>NSCameraUsageDescription</key>
+    <string>Used to capture facial biometrics and documents</string>
+    ```
+
+2. `NSMicrophoneUsageDescription`
+    ```xml
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Used to capture video biometrics</string>
+    ```
+   
 ### Run the apps
 
 1. [Create a Client ID](https://docs.complycube.com/documentation/guides/mobile-sdk-guide/mobile-sdk-integration-guide#id-2.-create-a-client).

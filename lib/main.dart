@@ -1,9 +1,4 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:complycube/complycube.dart';
 
 void main() {
@@ -36,6 +31,10 @@ class _MyAppState extends State<MyApp> {
                 "title": "XTM ID verification",
                 "message": "We will now verify your identity.",
               },
+              {
+                "name": 'documentCapture',
+              },
+              'faceCapture',
               {
                 "name": "customerInfo",
                 "title": "CustomerInfo",
@@ -242,12 +241,8 @@ class _MyAppState extends State<MyApp> {
               "borderRadius": 16,
             }
           },
-          //Handle callbacks
           onError: (errors) {
             print("CCube Errors:: ${errors.map((e) => e.toJson())}");
-            // if (kDebugMode) {
-            //   print("CCube Errors:: ${errors.map((e) => e.toJson())}");
-            // }
           },
           onSuccess: (result) {
             print("CCube Result:: ${result.toJson()}");
