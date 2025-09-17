@@ -44,11 +44,10 @@ packages:
   complycube:
     dependency: "direct main"
     description:
-      name: complycube
-      sha256: da13e2321f5e3a9da9031e751099daf04faab7b0e204d3ff26acba958df9bdc5
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
+      path: "/Users/aniket.indulkar/Documents/GitHub/complycube-sdk-flutter-internal"
+      relative: false
+    source: path
+    version: "0.0.9"
   cupertino_icons:
     dependency: "direct main"
     description:
