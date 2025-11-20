@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.complycube.flutter.complycube"
+    namespace "com.complycube.flutter.complycube_example"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -46,7 +46,7 @@ android {
         applicationId "com.complycube.flutter.complycube_example"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 24
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -61,15 +61,7 @@ android {
     }
 
     packagingOptions {
-        resources {
-            excludes += [
-                    'META-INF/DEPENDENCIES',
-                    'META-INF/LICENSE',
-                    'META-INF/LICENSE.txt',
-                    'META-INF/NOTICE',
-                    'META-INF/NOTICE.txt'
-            ]
-        }
+        resources.excludes.add("META-INF/*")
     }
 }
 
