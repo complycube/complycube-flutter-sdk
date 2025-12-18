@@ -1,0 +1,134 @@
+name: Update Compatibility Matrix
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly on Mondays at 03:00 UTC
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-compatibility-matrix
+  cancel-in-progress: true
+
+jobs:
+  configure:
+    name: Configure matrix (full)
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        name: Load full matrix from scripts/ci/matrix.json
+        run: |
+          MATRIX_JSON=$(python3 scripts/ci/extract_matrix_rows.py --matrix scripts/ci/matrix.json)
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build matrix
+    needs: [configure]
+    runs-on: ${{ matrix.row.runs_on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        row: ${{ fromJson(needs.configure.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        if: matrix.row.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.row.jdk }}
+          cache: gradle
+
+      - name: Set up Flutter (pinned)
+        if: matrix.row.flutter_version != 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          flutter-version: ${{ matrix.row.flutter_version }}
+          cache: true
+
+      - name: Set up Flutter (latest stable)
+        if: matrix.row.flutter_version == 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          cache: true
+
+      - name: Ensure CocoaPods present (macOS)
+        if: matrix.row.platform == 'ios'
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods
+          fi
+          pod --version
+
+      - name: Build Android
+        if: matrix.row.platform == 'android'
+        run: |
+          mkdir -p artifacts/results
+          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
+          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
+          ./scripts/ci/build_android.sh --row-json artifacts/row.json --results-dir artifacts/results
+
+      - name: Build iOS
+        if: matrix.row.platform == 'ios'
+        run: |
+          mkdir -p artifacts/results
+          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
+          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
+          ./scripts/ci/build_ios.sh --row-json artifacts/row.json --results-dir artifacts/results
+
+      - name: Upload result JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-${{ matrix.row.id }}
+          path: artifacts/results/${{ matrix.row.id }}.json
+          if-no-files-found: error
+
+  aggregate:
+    name: Generate COMPATIBILITY.md and open PR
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: compat-result-*
+          path: artifacts/results
+          merge-multiple: true
+
+      - name: Generate matrix markdown
+        run: |
+          python3 scripts/ci/generate_compatibility_md.py --results-dir artifacts/results > artifacts/generated.md
+          cat artifacts/generated.md
+
+      - name: Update COMPATIBILITY.md (GENERATED block)
+        run: |
+          chmod +x scripts/ci/update_generated_block.sh
+          ./scripts/ci/update_generated_block.sh COMPATIBILITY.md artifacts/generated.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update compatibility matrix"
+          title: "chore: update compatibility matrix"
+          body: |
+            Automated update of the CI-validated compatibility matrix.
+            - Source: scripts/ci/matrix.json
+            - Generated from per-row build results in this workflow run.
+          branch: ci/update-compatibility-matrix
+          delete-branch: true

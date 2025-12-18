@@ -1,0 +1,130 @@
+name: CI (sample app)
+
+on:
+  pull_request:
+  push:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  configure:
+    name: Configure matrices (smoke)
+    runs-on: ubuntu-latest
+    outputs:
+      android_matrix: ${{ steps.set.outputs.android_matrix }}
+      ios_matrix: ${{ steps.set.outputs.ios_matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        name: Select smoke rows (recommended)
+        run: |
+          ANDROID=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=android)
+          IOS=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=ios)
+
+          echo "android_matrix=$ANDROID" >> $GITHUB_OUTPUT
+          echo "ios_matrix=$IOS" >> $GITHUB_OUTPUT
+
+
+  build_android:
+    name: Build Android (smoke)
+    needs: [configure]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      matrix:
+        row: ${{ fromJson(needs.configure.outputs.android_matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.row.jdk }}
+          cache: gradle
+
+      - name: Set up Flutter (pinned)
+        if: matrix.row.flutter_version != 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          flutter-version: ${{ matrix.row.flutter_version }}
+          cache: true
+
+      - name: Set up Flutter (latest stable)
+        if: matrix.row.flutter_version == 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          cache: true
+
+      - name: Build Android
+        run: |
+          mkdir -p artifacts/results
+          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
+          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
+          ./scripts/ci/build_android.sh --row-json artifacts/row.json --results-dir artifacts/results
+
+      - name: Upload result JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-result-${{ matrix.row.id }}
+          path: artifacts/results/${{ matrix.row.id }}.json
+          if-no-files-found: error
+
+  build_ios:
+    name: Build iOS (smoke)
+    needs: [configure]
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      matrix:
+        row: ${{ fromJson(needs.configure.outputs.ios_matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter (pinned)
+        if: matrix.row.flutter_version != 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          flutter-version: ${{ matrix.row.flutter_version }}
+          cache: true
+
+      - name: Set up Flutter (latest stable)
+        if: matrix.row.flutter_version == 'stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          cache: true
+
+      - name: Ensure CocoaPods present
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods
+          fi
+          pod --version
+
+      - name: Build iOS
+        run: |
+          mkdir -p artifacts/results
+          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
+          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
+          ./scripts/ci/build_ios.sh --row-json artifacts/row.json --results-dir artifacts/results
+
+      - name: Upload result JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-result-${{ matrix.row.id }}
+          path: artifacts/results/${{ matrix.row.id }}.json
+          if-no-files-found: error

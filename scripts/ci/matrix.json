@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "notes": [
+    "9-row matrix: 3 Flutter versions \u00d7 (Android JDK17, Android JDK21, iOS).",
+    "Latest stable uses flutter_version='stable' so CI always tracks the newest stable release.",
+    "Android rows build Debug APK; iOS rows build with --no-codesign.",
+    "Baseline Android toolchain pinned per repo policy: AGP 8.2.2, Gradle 8.9, Kotlin 1.9.24."
+  ],
+  "rows": [
+    {
+      "id": "android-flutter-3.27.4-jdk17",
+      "platform": "android",
+      "flutter_version": "3.27.4",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "17",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "minimum"
+    },
+    {
+      "id": "android-flutter-3.27.4-jdk21",
+      "platform": "android",
+      "flutter_version": "3.27.4",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "21",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "best-effort"
+    },
+    {
+      "id": "ios-flutter-3.27.4",
+      "platform": "ios",
+      "flutter_version": "3.27.4",
+      "channel": "stable",
+      "runs_on": "macos-latest",
+      "support_level": "best-effort"
+    },
+    {
+      "id": "android-flutter-3.29.3-jdk17",
+      "platform": "android",
+      "flutter_version": "3.29.3",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "17",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "recommended"
+    },
+    {
+      "id": "android-flutter-3.29.3-jdk21",
+      "platform": "android",
+      "flutter_version": "3.29.3",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "21",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "best-effort"
+    },
+    {
+      "id": "ios-flutter-3.29.3",
+      "platform": "ios",
+      "flutter_version": "3.29.3",
+      "channel": "stable",
+      "runs_on": "macos-latest",
+      "support_level": "recommended"
+    },
+    {
+      "id": "android-flutter-latest-stable-jdk17",
+      "platform": "android",
+      "flutter_version": "stable",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "17",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "latest"
+    },
+    {
+      "id": "android-flutter-latest-stable-jdk21",
+      "platform": "android",
+      "flutter_version": "stable",
+      "channel": "stable",
+      "runs_on": "ubuntu-latest",
+      "jdk": "21",
+      "agp": "8.2.2",
+      "gradle": "8.9",
+      "kotlin": "1.9.24",
+      "support_level": "best-effort"
+    },
+    {
+      "id": "ios-flutter-latest-stable",
+      "platform": "ios",
+      "flutter_version": "stable",
+      "channel": "stable",
+      "runs_on": "macos-latest",
+      "support_level": "latest"
+    }
+  ]
+}

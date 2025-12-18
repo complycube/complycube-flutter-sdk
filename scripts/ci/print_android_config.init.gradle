@@ -1,0 +1,43 @@
+// scripts/ci/print_android_config.init.gradle
+// Prints resolved Android config from :app after evaluation.
+// Output format is machine-parseable lines prefixed with CC_ANDROID_CONFIG::
+gradle.projectsEvaluated {
+    def p = gradle.rootProject.findProject(":app")
+    if (p == null) {
+        println("CC_ANDROID_CONFIG::error=:app project not found")
+        return
+    }
+    def android = p.extensions.findByName("android")
+    if (android == null) {
+        println("CC_ANDROID_CONFIG::error=android extension not found on :app")
+        return
+    }
+
+    def compileSdk = null
+    try {
+        // Often returns like "android-35"
+        compileSdk = android.compileSdkVersion
+    } catch (Throwable t) {
+        compileSdk = null
+    }
+
+    def minSdk = null
+    def targetSdk = null
+    try {
+        def dc = android.defaultConfig
+        if (dc != null) {
+            try { minSdk = dc.minSdkVersion?.apiLevel } catch (Throwable ignored) {}
+            try { targetSdk = dc.targetSdkVersion?.apiLevel } catch (Throwable ignored) {}
+        }
+    } catch (Throwable ignored) {}
+
+    def compileSdkDigits = null
+    if (compileSdk != null) {
+        def m = (compileSdk.toString() =~ /(\d+)/)
+        if (m.find()) compileSdkDigits = m.group(1)
+    }
+
+    println("CC_ANDROID_CONFIG::compileSdk=" + (compileSdkDigits ?: compileSdk ?: ""))
+    println("CC_ANDROID_CONFIG::targetSdk=" + (targetSdk ?: ""))
+    println("CC_ANDROID_CONFIG::minSdk=" + (minSdk ?: ""))
+}
