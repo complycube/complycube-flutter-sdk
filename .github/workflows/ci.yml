@@ -3,7 +3,7 @@ name: CI (sample app)
 on:
   pull_request:
   push:
-    branches: [ "**" ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -22,14 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: set
-        name: Select smoke rows (recommended)
         run: |
           ANDROID=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=android)
           IOS=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=ios)
-
           echo "android_matrix=$ANDROID" >> $GITHUB_OUTPUT
           echo "ios_matrix=$IOS" >> $GITHUB_OUTPUT
-
 
   build_android:
     name: Build Android (smoke)
@@ -37,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         row: ${{ fromJson(needs.configure.outputs.android_matrix) }}
 
@@ -51,20 +48,24 @@ jobs:
           java-version: ${{ matrix.row.jdk }}
           cache: gradle
 
-      - name: Set up Flutter (pinned)
-        if: matrix.row.flutter_version != 'stable'
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.row.channel }}
-          flutter-version: ${{ matrix.row.flutter_version }}
+          flutter-version: ${{ matrix.row.flutter_version != 'stable' && matrix.row.flutter_version || '' }}
           cache: true
 
-      - name: Set up Flutter (latest stable)
-        if: matrix.row.flutter_version == 'stable'
-        uses: subosito/flutter-action@v2
-        with:
-          channel: ${{ matrix.row.channel }}
-          cache: true
+      - name: Create android/local.properties (CI)
+        run: |
+          mkdir -p android
+          if [ ! -f android/local.properties ]; then
+            echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
+            if [ -n "${ANDROID_SDK_ROOT}" ]; then
+              echo "sdk.dir=${ANDROID_SDK_ROOT}" >> android/local.properties
+            elif [ -n "${ANDROID_HOME}" ]; then
+              echo "sdk.dir=${ANDROID_HOME}" >> android/local.properties
+            fi
+          fi
 
       - name: Build Android
         run: |
@@ -86,27 +87,30 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         row: ${{ fromJson(needs.configure.outputs.ios_matrix) }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Flutter (pinned)
-        if: matrix.row.flutter_version != 'stable'
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.row.channel }}
-          flutter-version: ${{ matrix.row.flutter_version }}
+          flutter-version: ${{ matrix.row.flutter_version != 'stable' && matrix.row.flutter_version || '' }}
           cache: true
 
-      - name: Set up Flutter (latest stable)
-        if: matrix.row.flutter_version == 'stable'
-        uses: subosito/flutter-action@v2
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
         with:
-          channel: ${{ matrix.row.channel }}
-          cache: true
+          path: |
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+            ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
 
       - name: Ensure CocoaPods present
         run: |

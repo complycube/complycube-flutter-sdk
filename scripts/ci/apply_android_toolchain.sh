@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Applies Android toolchain versions for a matrix row (CI use).
-# - Normalizes android/settings.gradle includeBuild to use FLUTTER_SDK_PATH (avoids absolute paths)
-# - Ensures AGP plugin versions are declared for BOTH com.android.application and com.android.library
-# - Sets Kotlin plugin version
-# - Sets Gradle wrapper version (distributionUrl)
-#
-# Usage:
-#   ./scripts/ci/apply_android_toolchain.sh --agp 8.2.2 --kotlin 1.9.24 --gradle 8.9
-
 AGP=""
 KOTLIN=""
 GRADLE=""
@@ -30,6 +21,7 @@ fi
 
 SETTINGS="android/settings.gradle"
 WRAPPER="android/gradle/wrapper/gradle-wrapper.properties"
+LOCAL_PROPS="android/local.properties"
 
 if [[ ! -f "$SETTINGS" ]]; then
   echo "ERROR: $SETTINGS not found. Run from repo root."
@@ -42,30 +34,70 @@ fi
 
 echo "Applying Android toolchain: AGP=$AGP, Kotlin=$KOTLIN, Gradle=$GRADLE"
 
-# 1) Normalize includeBuild(...) to use flutterSdkPath (removes absolute path issues in CI)
-# We look for includeBuild(".../packages/flutter_tools/gradle") and replace with:
-# includeBuild("${flutterSdkPath}/packages/flutter_tools/gradle")
+# Ensure local.properties exists for Flutter Gradle tooling (CI).
+if [[ ! -f "$LOCAL_PROPS" ]]; then
+  if [[ -z "${FLUTTER_ROOT:-}" ]]; then
+    echo "ERROR: android/local.properties missing and FLUTTER_ROOT is not set."
+    exit 1
+  fi
+  {
+    echo "flutter.sdk=${FLUTTER_ROOT}"
+    if [[ -n "${ANDROID_SDK_ROOT:-}" ]]; then
+      echo "sdk.dir=${ANDROID_SDK_ROOT}"
+    elif [[ -n "${ANDROID_HOME:-}" ]]; then
+      echo "sdk.dir=${ANDROID_HOME}"
+    fi
+  } > "$LOCAL_PROPS"
+  echo "Created $LOCAL_PROPS"
+fi
+
+# Make flutterSdkPath() robust + normalize includeBuild to flutterSdkPath()
 python3 - <<'PY' "$SETTINGS"
 import re, sys, pathlib
 p = pathlib.Path(sys.argv[1])
 s = p.read_text(encoding="utf-8")
-# Replace any absolute includeBuild(".../packages/flutter_tools/gradle") with ${flutterSdkPath}/packages/flutter_tools/gradle
-s2 = re.sub(r'includeBuild\(".*?/packages/flutter_tools/gradle"\)',
-            r'includeBuild("${flutterSdkPath}/packages/flutter_tools/gradle")',
-            s)
-p.write_text(s2, encoding="utf-8")
+
+pattern = re.compile(r'def\s+flutterSdkPath\s*=\s*\{\s*([\s\S]*?)\s*\}\s*', re.MULTILINE)
+m = pattern.search(s)
+if m:
+    replacement = '''def flutterSdkPath = {
+        def properties = new Properties()
+        def localProperties = file("local.properties")
+        if (localProperties.exists()) {
+            localProperties.withInputStream { properties.load(it) }
+            def v = properties.getProperty("flutter.sdk")
+            if (v != null && v.trim()) {
+                return v
+            }
+        }
+        def env = System.getenv("FLUTTER_ROOT") ?: System.getenv("FLUTTER_HOME")
+        assert env != null && env.trim(), "flutter.sdk not set in local.properties and FLUTTER_ROOT not set"
+        return env
+    }'''
+    s = s[:m.start()] + replacement + s[m.end():]
+
+s = re.sub(r'includeBuild\(".*?/packages/flutter_tools/gradle"\)',
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
+           s)
+s = re.sub(r'includeBuild\("\$\{flutterSdkPath\}/packages/flutter_tools/gradle"\)',
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
+           s)
+s = re.sub(r'includeBuild\("\$\{flutterSdkPath\(\)\}/packages/flutter_tools/gradle"\)',
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
+           s)
+
+p.write_text(s, encoding="utf-8")
 PY
 
-# 2) Update Gradle wrapper distributionUrl
-# Example: distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-all.zip
+# Update Gradle wrapper distributionUrl
 python3 - <<'PY' "$WRAPPER" "$GRADLE"
-import sys, pathlib, re
+import sys, pathlib
 p = pathlib.Path(sys.argv[1])
 gradle = sys.argv[2]
-txt = p.read_text(encoding="utf-8").splitlines()
+lines = p.read_text(encoding="utf-8").splitlines()
 out = []
 repl = False
-for line in txt:
+for line in lines:
     if line.startswith("distributionUrl="):
         out.append(f"distributionUrl=https\\://services.gradle.org/distributions/gradle-{gradle}-all.zip")
         repl = True
@@ -74,11 +106,9 @@ for line in txt:
 if not repl:
     out.append(f"distributionUrl=https\\://services.gradle.org/distributions/gradle-{gradle}-all.zip")
 p.write_text("\n".join(out) + "\n", encoding="utf-8")
-print(f"Updated {p}")
 PY
 
-# 3) Ensure plugins block has both com.android.application and com.android.library with AGP version,
-#    and org.jetbrains.kotlin.android with Kotlin version.
+# Update plugins block versions
 python3 - <<'PY' "$SETTINGS" "$AGP" "$KOTLIN"
 import sys, pathlib, re
 settings = pathlib.Path(sys.argv[1])
@@ -86,32 +116,27 @@ agp = sys.argv[2]
 kotlin = sys.argv[3]
 s = settings.read_text(encoding="utf-8")
 
-# Find plugins { ... } block (very common in Flutter's settings.gradle)
 m = re.search(r'plugins\s*\{\s*([\s\S]*?)\s*\}\s*', s)
 if not m:
     raise SystemExit("ERROR: plugins { } block not found in android/settings.gradle")
 
-block = m.group(0)
 inner = m.group(1)
 
-def upsert_plugin(inner: str, plugin_id: str, version: str, apply_false: bool=True) -> str:
-    # Replace existing line if present, otherwise add.
-    pattern = re.compile(rf'^\s*id\s+"{re.escape(plugin_id)}"\s+version\s+"[^"]+"\s*(apply\s+false)?\s*$', re.MULTILINE)
-    repl = f'    id "{plugin_id}" version "{version}"' + (' apply false' if apply_false else '')
-    if pattern.search(inner):
-        return pattern.sub(repl, inner)
-    # Append before end
-    return inner.rstrip() + "\n" + repl + "\n"
+def upsert(inner: str, plugin_id: str, version: str) -> str:
+    pat = re.compile(rf'^\s*id\s+\"{re.escape(plugin_id)}\"\s+version\s+\"[^\"]+\"\s*(apply\s+false)?\s*$', re.MULTILINE)
+    line = f'    id "{plugin_id}" version "{version}" apply false'
+    if pat.search(inner):
+        return pat.sub(line, inner)
+    return inner.rstrip() + "\n" + line + "\n"
 
 inner2 = inner
-inner2 = upsert_plugin(inner2, "com.android.application", agp, True)
-inner2 = upsert_plugin(inner2, "com.android.library", agp, True)
-inner2 = upsert_plugin(inner2, "org.jetbrains.kotlin.android", kotlin, True)
+inner2 = upsert(inner2, "com.android.application", agp)
+inner2 = upsert(inner2, "com.android.library", agp)
+inner2 = upsert(inner2, "org.jetbrains.kotlin.android", kotlin)
 
 new_block = "plugins{\n" + inner2.strip("\n") + "\n}\n"
 s2 = s[:m.start()] + new_block + s[m.end():]
 settings.write_text(s2, encoding="utf-8")
-print("Updated plugins block in android/settings.gradle")
 PY
 
 echo "Android toolchain patch complete."

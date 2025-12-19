@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Builds Android and writes a result JSON.
-# Usage:
-#   ./scripts/ci/build_android.sh --row-json scripts/ci/matrix_row.json --results-dir artifacts/results
-#
-# The row json is expected to be one object (not the full matrix.json).
-
 ROW_JSON=""
 RESULTS_DIR=""
 
@@ -40,6 +34,8 @@ PY
 outcome="pass"
 notes=""
 
+flutter config --no-analytics >/dev/null 2>&1 || true
+
 set +e
 flutter pub get
 pub_status=$?
@@ -50,14 +46,14 @@ if [[ $pub_status -ne 0 ]]; then
 fi
 
 if [[ "$outcome" == "pass" ]]; then
-  # Run doctor (non-fatal warnings)
   chmod +x ./scripts/doctor.sh || true
   set +e
   ./scripts/doctor.sh
   set -e
 fi
 
-# Apply toolchain versions for this row (AGP/Kotlin/Gradle)
+build_log="$(mktemp)"
+
 if [[ "$outcome" == "pass" ]]; then
   agp="$(python3 - <<PY "$ROW_JSON"
 import json,sys
@@ -77,8 +73,6 @@ PY
   ./scripts/ci/apply_android_toolchain.sh --agp "$agp" --kotlin "$kotlin" --gradle "$gradle"
 fi
 
-# Build APK
-build_log="$(mktemp)"
 if [[ "$outcome" == "pass" ]]; then
   set +e
   flutter build apk --debug 2>&1 | tee "$build_log"
@@ -90,7 +84,6 @@ if [[ "$outcome" == "pass" ]]; then
   fi
 fi
 
-# Collect versions
 detected="$(./scripts/ci/collect_versions.sh --platform android --row-id "$row_id")"
 
 ended="$(python3 - <<'PY'
@@ -98,11 +91,8 @@ import time; print(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
 PY
 )"
 
-# Requested row
 requested="$(cat "$ROW_JSON")"
-
-# Keep last 120 lines of logs for debugging
-log_tail="$(tail -n 120 "$build_log" 2>/dev/null | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))' || echo "\"\"")"
+log_tail="$(tail -n 120 "$build_log" 2>/dev/null | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))' || echo "\"\"\\"\"")"
 
 python3 - <<PY > "${RESULTS_DIR}/${row_id}.json"
 import json
