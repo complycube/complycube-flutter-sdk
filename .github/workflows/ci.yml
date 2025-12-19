@@ -58,14 +58,12 @@ jobs:
       - name: Create android/local.properties (CI)
         run: |
           mkdir -p android
-          if [ ! -f android/local.properties ]; then
-            echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
-            if [ -n "${ANDROID_SDK_ROOT}" ]; then
-              echo "sdk.dir=${ANDROID_SDK_ROOT}" >> android/local.properties
-            elif [ -n "${ANDROID_HOME}" ]; then
-              echo "sdk.dir=${ANDROID_HOME}" >> android/local.properties
-            fi
-          fi
+          # Always overwrite in CI to avoid user-local paths
+          cat > android/local.properties <<EOF
+          flutter.sdk=${FLUTTER_ROOT}
+          sdk.dir=${ANDROID_SDK_ROOT:-$ANDROID_HOME}
+          flutter.buildMode=debug
+          EOF
 
       - name: Build Android
         run: |
@@ -74,61 +72,77 @@ jobs:
           chmod +x scripts/ci/*.sh scripts/doctor.sh || true
           ./scripts/ci/build_android.sh --row-json artifacts/row.json --results-dir artifacts/results
 
-      - name: Upload result JSON
+      - name: Add result to job summary (Android)
+        if: always()
+        run: |
+          FILE="artifacts/results/${{ matrix.row.id }}.json"
+          chmod +x scripts/ci/job_summary.py scripts/ci/job_summary.sh || true
+          scripts/ci/job_summary.sh android "$FILE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload result JSON (Android)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-result-${{ matrix.row.id }}
           path: artifacts/results/${{ matrix.row.id }}.json
-          if-no-files-found: error
+          if-no-files-found: warn
 
-#  build_ios:
-#    name: Build iOS (smoke)
-#    needs: [configure]
-#    runs-on: macos-latest
-#    timeout-minutes: 45
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        row: ${{ fromJson(needs.configure.outputs.ios_matrix) }}
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Set up Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          channel: ${{ matrix.row.channel }}
-#          flutter-version: ${{ matrix.row.flutter_version != 'stable' && matrix.row.flutter_version || '' }}
-#          cache: true
-#
-#      - name: Cache CocoaPods
-#        uses: actions/cache@v4
-#        with:
-#          path: |
-#            ~/.cocoapods
-#            ~/Library/Caches/CocoaPods
-#            ios/Pods
-#          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
-#          restore-keys: |
-#            pods-${{ runner.os }}-
-#
-#      - name: Ensure CocoaPods present
-#        run: |
-#          if ! command -v pod >/dev/null 2>&1; then
-#            sudo gem install cocoapods
-#          fi
-#          pod --version
-#
-#      - name: Build iOS
-#        run: |
-#          mkdir -p artifacts/results
-#          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
-#          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
-#          ./scripts/ci/build_ios.sh --row-json artifacts/row.json --results-dir artifacts/results
-#
-#      - name: Upload result JSON
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: smoke-result-${{ matrix.row.id }}
-#          path: artifacts/results/${{ matrix.row.id }}.json
-#          if-no-files-found: error
+  build_ios:
+    name: Build iOS (smoke)
+    needs: [configure]
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        row: ${{ fromJson(needs.configure.outputs.ios_matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.row.channel }}
+          flutter-version: ${{ matrix.row.flutter_version != 'stable' && matrix.row.flutter_version || '' }}
+          cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+            ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
+
+      - name: Ensure CocoaPods present
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods
+          fi
+          pod --version
+
+      - name: Build iOS
+        run: |
+          mkdir -p artifacts/results
+          echo '${{ toJson(matrix.row) }}' > artifacts/row.json
+          chmod +x scripts/ci/*.sh scripts/doctor.sh || true
+          ./scripts/ci/build_ios.sh --row-json artifacts/row.json --results-dir artifacts/results
+
+      - name: Add result to job summary (iOS)
+        if: always()
+        run: |
+          FILE="artifacts/results/${{ matrix.row.id }}.json"
+          chmod +x scripts/ci/job_summary.py scripts/ci/job_summary.sh || true
+          scripts/ci/job_summary.sh ios "$FILE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload result JSON (iOS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-result-${{ matrix.row.id }}
+          path: artifacts/results/${{ matrix.row.id }}.json
+          if-no-files-found: warn
