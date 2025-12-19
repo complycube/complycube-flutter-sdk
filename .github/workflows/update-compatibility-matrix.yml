@@ -16,6 +16,7 @@ concurrency:
 jobs:
   configure:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:

@@ -51,12 +51,18 @@ if [[ ! -f "$LOCAL_PROPS" ]]; then
   echo "Created $LOCAL_PROPS"
 fi
 
-# Make flutterSdkPath() robust + normalize includeBuild to flutterSdkPath()
+# 1) Normalize settings.gradle encoding + fix flutterSdkPath() + normalize includeBuild(...) safely.
 python3 - <<'PY' "$SETTINGS"
 import re, sys, pathlib
-p = pathlib.Path(sys.argv[1])
-s = p.read_text(encoding="utf-8")
 
+p = pathlib.Path(sys.argv[1])
+s = p.read_text(encoding="utf-8", errors="replace")
+
+# ---- (2) Normalize common invisible/encoding issues ----
+s = s.replace("\ufeff", "")      # UTF-8 BOM
+s = s.replace("\u00a0", " ")     # NBSP -> space
+
+# Replace flutterSdkPath closure with env fallback (if present)
 pattern = re.compile(r'def\s+flutterSdkPath\s*=\s*\{\s*([\s\S]*?)\s*\}\s*', re.MULTILINE)
 m = pattern.search(s)
 if m:
@@ -76,20 +82,18 @@ if m:
     }'''
     s = s[:m.start()] + replacement + s[m.end():]
 
+# Normalize includeBuild to use flutterSdkPath()
 s = re.sub(r'includeBuild\(".*?/packages/flutter_tools/gradle"\)',
-           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
-           s)
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")', s)
 s = re.sub(r'includeBuild\("\$\{flutterSdkPath\}/packages/flutter_tools/gradle"\)',
-           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
-           s)
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")', s)
 s = re.sub(r'includeBuild\("\$\{flutterSdkPath\(\)\}/packages/flutter_tools/gradle"\)',
-           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")',
-           s)
+           r'includeBuild("${flutterSdkPath()}/packages/flutter_tools/gradle")', s)
 
 p.write_text(s, encoding="utf-8")
 PY
 
-# Update Gradle wrapper distributionUrl
+# 2) Update Gradle wrapper distributionUrl
 python3 - <<'PY' "$WRAPPER" "$GRADLE"
 import sys, pathlib
 p = pathlib.Path(sys.argv[1])
@@ -108,34 +112,78 @@ if not repl:
 p.write_text("\n".join(out) + "\n", encoding="utf-8")
 PY
 
-# Update plugins block versions
+# 3) (1) Safely patch ONLY the plugins { ... } block using brace scanning (no regex that can eat other blocks).
 python3 - <<'PY' "$SETTINGS" "$AGP" "$KOTLIN"
 import sys, pathlib, re
+
 settings = pathlib.Path(sys.argv[1])
 agp = sys.argv[2]
 kotlin = sys.argv[3]
-s = settings.read_text(encoding="utf-8")
+s = settings.read_text(encoding="utf-8", errors="replace")
 
-m = re.search(r'plugins\s*\{\s*([\s\S]*?)\s*\}\s*', s)
+# ---- (2) Normalize again (defensive) ----
+s = s.replace("\ufeff", "")
+s = s.replace("\u00a0", " ")
+
+# Find the "plugins {" block start
+m = re.search(r'(?m)^\s*plugins\s*\{', s)
 if not m:
     raise SystemExit("ERROR: plugins { } block not found in android/settings.gradle")
 
-inner = m.group(1)
+# Locate the opening brace '{' position
+open_brace = s.find("{", m.start())
+if open_brace == -1:
+    raise SystemExit("ERROR: plugins block opening brace not found")
 
-def upsert(inner: str, plugin_id: str, version: str) -> str:
-    pat = re.compile(rf'^\s*id\s+\"{re.escape(plugin_id)}\"\s+version\s+\"[^\"]+\"\s*(apply\s+false)?\s*$', re.MULTILINE)
-    line = f'    id "{plugin_id}" version "{version}" apply false'
-    if pat.search(inner):
-        return pat.sub(line, inner)
-    return inner.rstrip() + "\n" + line + "\n"
+# Scan forward to find matching closing brace for this block
+depth = 0
+close_brace = None
+for i in range(open_brace, len(s)):
+    ch = s[i]
+    if ch == "{":
+        depth += 1
+    elif ch == "}":
+        depth -= 1
+        if depth == 0:
+            close_brace = i
+            break
 
-inner2 = inner
-inner2 = upsert(inner2, "com.android.application", agp)
-inner2 = upsert(inner2, "com.android.library", agp)
-inner2 = upsert(inner2, "org.jetbrains.kotlin.android", kotlin)
+if close_brace is None:
+    raise SystemExit("ERROR: plugins block closing brace not found (brace scan failed)")
 
-new_block = "plugins{\n" + inner2.strip("\n") + "\n}\n"
-s2 = s[:m.start()] + new_block + s[m.end():]
+block_header = s[m.start():open_brace+1]  # includes '{'
+block_inner = s[open_brace+1:close_brace]
+block_footer = s[close_brace:close_brace+1]  # '}'
+
+lines = block_inner.splitlines()
+
+def upsert_plugin(lines, plugin_id, version):
+    # Replace any existing matching id line, else append a new one.
+    pat = re.compile(rf'^\s*id\s+"{re.escape(plugin_id)}"\s+version\s+"[^"]+"\s*(apply\s+false)?\s*$', re.IGNORECASE)
+    new_line = f'    id "{plugin_id}" version "{version}" apply false'
+    for idx, ln in enumerate(lines):
+        if pat.match(ln.strip("\r")):
+            lines[idx] = new_line
+            return lines
+    # Insert near end (preserve spacing)
+    # Put it after last existing "id ..." line if possible
+    last_id = -1
+    for idx, ln in enumerate(lines):
+        if re.match(r'^\s*id\s+"', ln):
+            last_id = idx
+    insert_at = last_id + 1 if last_id != -1 else len(lines)
+    lines.insert(insert_at, new_line)
+    return lines
+
+lines = upsert_plugin(lines, "com.android.application", agp)
+lines = upsert_plugin(lines, "com.android.library", agp)
+lines = upsert_plugin(lines, "org.jetbrains.kotlin.android", kotlin)
+
+# Rebuild plugins block with consistent formatting
+new_inner = "\n".join([ln.rstrip("\r") for ln in lines]).strip("\n")
+new_block = f"{block_header}\n{new_inner}\n{block_footer}\n"
+
+s2 = s[:m.start()] + new_block + s[close_brace+1:]
 settings.write_text(s2, encoding="utf-8")
 PY
 
