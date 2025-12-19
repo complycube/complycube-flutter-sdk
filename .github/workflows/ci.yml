@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   configure:
-    name: Configure matrices (smoke)
+    name: Configure matrices (all)
     runs-on: ubuntu-latest
     outputs:
       android_matrix: ${{ steps.set.outputs.android_matrix }}
@@ -23,8 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: set
         run: |
-          ANDROID=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=android)
-          IOS=$(python3 scripts/ci/extract_matrix_rows.py --filter support_level=recommended --filter platform=ios)
+          ANDROID=$(python3 scripts/ci/extract_matrix_rows.py --filter platform=android)
+          IOS=$(python3 scripts/ci/extract_matrix_rows.py --filter platform=ios)
           echo "android_matrix=$ANDROID" >> $GITHUB_OUTPUT
           echo "ios_matrix=$IOS" >> $GITHUB_OUTPUT
 

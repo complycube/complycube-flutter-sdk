@@ -48,9 +48,20 @@ def main() -> int:
     title_platform = "Android" if args.platform == "android" else "iOS"
 
     print(f"### {title_platform} · {row_id}")
-    print(f"- Outcome: **{out}**" if out else "- Outcome: **unknown**")
+    out = (d.get("outcome", "") or "").lower()
+    notes = d.get("notes", "")
+
+    if out == "pass":
+        badge = "🟢"
+    elif out == "fail":
+        badge = "🔴"
+    else:
+        badge = "🟡"
+
+    print(f"- Outcome: {badge} **{out or 'unknown'}**")
     if notes:
         print(f"- Notes: {notes}")
+
 
     # Common
     fv = det.get("flutter_version", "")
