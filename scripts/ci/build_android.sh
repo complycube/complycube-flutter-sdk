@@ -26,6 +26,8 @@ PY
 
 echo "=== Android build row: $row_id ==="
 
+flutter config --no-analytics >/dev/null 2>&1 || true
+
 started="$(python3 - <<'PY'
 import time; print(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
 PY
@@ -34,22 +36,14 @@ PY
 outcome="pass"
 notes=""
 
-flutter config --no-analytics >/dev/null 2>&1 || true
-
-set +e
-flutter pub get
-pub_status=$?
-set -e
-if [[ $pub_status -ne 0 ]]; then
+if ! flutter pub get; then
   outcome="fail"
   notes="flutter pub get failed"
 fi
 
 if [[ "$outcome" == "pass" ]]; then
   chmod +x ./scripts/doctor.sh || true
-  set +e
-  ./scripts/doctor.sh
-  set -e
+  ./scripts/doctor.sh || true
 fi
 
 build_log="$(mktemp)"
@@ -75,7 +69,7 @@ fi
 
 if [[ "$outcome" == "pass" ]]; then
   set +e
-  flutter build apk --debug 2>&1 | tee "$build_log"
+  flutter build apk --debug >"$build_log" 2>&1
   build_status=$?
   set -e
   if [[ $build_status -ne 0 ]]; then
@@ -84,32 +78,38 @@ if [[ "$outcome" == "pass" ]]; then
   fi
 fi
 
-detected="$(./scripts/ci/collect_versions.sh --platform android --row-id "$row_id")"
+detected_file="$(mktemp)"
+./scripts/ci/collect_versions.sh --platform android --row-id "$row_id" > "$detected_file" || true
 
 ended="$(python3 - <<'PY'
 import time; print(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
 PY
 )"
 
-requested="$(cat "$ROW_JSON")"
-log_tail="$(tail -n 120 "$build_log" 2>/dev/null | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))' || echo "\"\"\\"\"")"
+log_tail_file="$(mktemp)"
+tail -n 120 "$build_log" > "$log_tail_file" || true
 
-python3 - <<PY > "${RESULTS_DIR}/${row_id}.json"
-import json
-requested = json.loads('''$requested''')
-detected = json.loads('''$detected''')
+python3 - <<'PY' "$ROW_JSON" "$detected_file" "$log_tail_file" "$row_id" "$outcome" "$notes" "$started" "$ended" "$RESULTS_DIR"
+import json, sys, pathlib
+row_json, detected_json, log_tail_file, row_id, outcome, notes, started, ended, results_dir = sys.argv[1:10]
+requested = json.load(open(row_json, encoding="utf-8"))
+try:
+    detected = json.load(open(detected_json, encoding="utf-8"))
+except Exception:
+    detected = {}
+log_tail = pathlib.Path(log_tail_file).read_text(encoding="utf-8", errors="replace")
 out = {
   "id": requested.get("id",""),
   "platform": "android",
   "requested": requested,
   "detected": detected,
-  "outcome": "$outcome",
-  "notes": "$notes",
-  "log_tail": json.loads($log_tail),
-  "started_at": "$started",
-  "ended_at": "$ended",
+  "outcome": outcome,
+  "notes": notes,
+  "log_tail": log_tail,
+  "started_at": started,
+  "ended_at": ended,
 }
-print(json.dumps(out, indent=2))
+path = pathlib.Path(results_dir) / f"{row_id}.json"
+path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+print(f"Wrote result: {path}")
 PY
-
-echo "Wrote result: ${RESULTS_DIR}/${row_id}.json"

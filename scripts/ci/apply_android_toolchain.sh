@@ -51,16 +51,35 @@ if [[ ! -f "$LOCAL_PROPS" ]]; then
   echo "Created $LOCAL_PROPS"
 fi
 
-# 1) Normalize settings.gradle encoding + fix flutterSdkPath() + normalize includeBuild(...) safely.
+# 1) Normalize settings.gradle aggressively (remove hidden format chars), fix flutterSdkPath() + includeBuild()
 python3 - <<'PY' "$SETTINGS"
-import re, sys, pathlib
+import re, sys, pathlib, unicodedata
 
 p = pathlib.Path(sys.argv[1])
 s = p.read_text(encoding="utf-8", errors="replace")
 
-# ---- (2) Normalize common invisible/encoding issues ----
-s = s.replace("\ufeff", "")      # UTF-8 BOM
-s = s.replace("\u00a0", " ")     # NBSP -> space
+def clean(text: str) -> str:
+    out = []
+    for ch in text:
+        if ch in ("\n", "\r", "\t"):
+            out.append(ch); continue
+        if ch == "\ufeff":
+            continue  # BOM
+        if ch == "\u00a0":
+            out.append(" "); continue  # NBSP
+        cat = unicodedata.category(ch)
+        # Drop "format" chars (zero-width joiners/spaces), surrogates, and control chars
+        if cat in ("Cf", "Cs", "Cc"):
+            continue
+        if ord(ch) < 32:
+            continue
+        out.append(ch)
+    return "".join(out)
+
+s = clean(s)
+
+# Defensive: normalize pluginManagement spacing if present at top level
+s = re.sub(r'(?m)^\s*pluginManagement\s*\{', 'pluginManagement {', s)
 
 # Replace flutterSdkPath closure with env fallback (if present)
 pattern = re.compile(r'def\s+flutterSdkPath\s*=\s*\{\s*([\s\S]*?)\s*\}\s*', re.MULTILINE)
@@ -112,30 +131,42 @@ if not repl:
 p.write_text("\n".join(out) + "\n", encoding="utf-8")
 PY
 
-# 3) (1) Safely patch ONLY the plugins { ... } block using brace scanning (no regex that can eat other blocks).
+# 3) Safely patch ONLY the plugins { ... } block via brace scanning
 python3 - <<'PY' "$SETTINGS" "$AGP" "$KOTLIN"
-import sys, pathlib, re
+import sys, pathlib, re, unicodedata
 
 settings = pathlib.Path(sys.argv[1])
 agp = sys.argv[2]
 kotlin = sys.argv[3]
 s = settings.read_text(encoding="utf-8", errors="replace")
 
-# ---- (2) Normalize again (defensive) ----
-s = s.replace("\ufeff", "")
-s = s.replace("\u00a0", " ")
+def clean(text: str) -> str:
+    out = []
+    for ch in text:
+        if ch in ("\n", "\r", "\t"):
+            out.append(ch); continue
+        if ch == "\ufeff":
+            continue
+        if ch == "\u00a0":
+            out.append(" "); continue
+        cat = unicodedata.category(ch)
+        if cat in ("Cf", "Cs", "Cc"):
+            continue
+        if ord(ch) < 32:
+            continue
+        out.append(ch)
+    return "".join(out)
 
-# Find the "plugins {" block start
+s = clean(s)
+
 m = re.search(r'(?m)^\s*plugins\s*\{', s)
 if not m:
     raise SystemExit("ERROR: plugins { } block not found in android/settings.gradle")
 
-# Locate the opening brace '{' position
 open_brace = s.find("{", m.start())
 if open_brace == -1:
     raise SystemExit("ERROR: plugins block opening brace not found")
 
-# Scan forward to find matching closing brace for this block
 depth = 0
 close_brace = None
 for i in range(open_brace, len(s)):
@@ -147,26 +178,22 @@ for i in range(open_brace, len(s)):
         if depth == 0:
             close_brace = i
             break
-
 if close_brace is None:
     raise SystemExit("ERROR: plugins block closing brace not found (brace scan failed)")
 
-block_header = s[m.start():open_brace+1]  # includes '{'
+block_header = s[m.start():open_brace+1]
 block_inner = s[open_brace+1:close_brace]
-block_footer = s[close_brace:close_brace+1]  # '}'
+block_footer = s[close_brace:close_brace+1]
 
 lines = block_inner.splitlines()
 
 def upsert_plugin(lines, plugin_id, version):
-    # Replace any existing matching id line, else append a new one.
     pat = re.compile(rf'^\s*id\s+"{re.escape(plugin_id)}"\s+version\s+"[^"]+"\s*(apply\s+false)?\s*$', re.IGNORECASE)
     new_line = f'    id "{plugin_id}" version "{version}" apply false'
     for idx, ln in enumerate(lines):
         if pat.match(ln.strip("\r")):
             lines[idx] = new_line
             return lines
-    # Insert near end (preserve spacing)
-    # Put it after last existing "id ..." line if possible
     last_id = -1
     for idx, ln in enumerate(lines):
         if re.match(r'^\s*id\s+"', ln):
@@ -179,7 +206,6 @@ lines = upsert_plugin(lines, "com.android.application", agp)
 lines = upsert_plugin(lines, "com.android.library", agp)
 lines = upsert_plugin(lines, "org.jetbrains.kotlin.android", kotlin)
 
-# Rebuild plugins block with consistent formatting
 new_inner = "\n".join([ln.rstrip("\r") for ln in lines]).strip("\n")
 new_block = f"{block_header}\n{new_inner}\n{block_footer}\n"
 
