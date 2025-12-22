@@ -113,9 +113,9 @@ jobs:
           path: |
             ~/.cocoapods
             ~/Library/Caches/CocoaPods
-            ios/Pods
-          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          key: pods-${{ runner.os }}-${{ matrix.row.id }}-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
+            pods-${{ runner.os }}-${{ matrix.row.id }}-
             pods-${{ runner.os }}-
 
       - name: Ensure CocoaPods present
