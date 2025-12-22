@@ -1,9 +1,12 @@
 name: Update Compatibility Matrix
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * 1'
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 3 * * 1'
+  pull_request:
+  push:
+    branches: [ "**" ]
 
 permissions:
   contents: write
@@ -67,12 +70,12 @@ jobs:
           fi
 
       - name: Cache CocoaPods
+        if: matrix.row.platform == 'ios'
         uses: actions/cache@v4
         with:
           path: |
             ~/.cocoapods
             ~/Library/Caches/CocoaPods
-            ios/Pods
           key: pods-${{ runner.os }}-${{ matrix.row.id }}-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             pods-${{ runner.os }}-${{ matrix.row.id }}-
@@ -108,3 +111,64 @@ jobs:
           name: compat-result-${{ matrix.row.id }}
           path: artifacts/results/${{ matrix.row.id }}.json
           if-no-files-found: error
+
+  publish-matrix:
+    name: Publish compatibility matrix
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download matrix results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: compat-result-*
+          path: artifacts/results
+          merge-multiple: true
+
+      - name: Generate compatibility markdown
+        run: |
+          python3 scripts/ci/generate_compatibility_md.py --results-dir artifacts/results > artifacts/compat_generated.md
+
+      - name: Update COMPATIBILITY.md
+        run: |
+          chmod +x scripts/ci/update_generated_block.sh
+          scripts/ci/update_generated_block.sh COMPATIBILITY.md artifacts/compat_generated.md
+
+      - name: Aggregate JSON (all rows)
+        run: |
+          python3 - <<'PY'
+            import json, pathlib
+            results_dir = pathlib.Path("artifacts/results")
+            rows = []
+            for p in sorted(results_dir.glob("*.json")):
+                rows.append(json.loads(p.read_text(encoding="utf-8")))
+            out = {"generated_at": __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()), "rows": rows}
+            path = pathlib.Path("compatibility_matrix.json")
+            path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+            print(f"Wrote {path}")
+            PY
+
+      - name: Create PR with updated matrix
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update compatibility matrix"
+          title: "chore: update compatibility matrix"
+          body: |
+            Automated compatibility matrix update from workflow run ${{ github.run_id }}.
+          branch: chore/update-compatibility-matrix
+          add-paths: |
+            COMPATIBILITY.md
+            compatibility_matrix.json
+
+      - name: Upload generated assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-matrix-assets
+          path: |
+            artifacts/compat_generated.md
+            compatibility_matrix.json
