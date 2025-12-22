@@ -142,16 +142,16 @@ jobs:
       - name: Aggregate JSON (all rows)
         run: |
           python3 - <<'PY'
-            import json, pathlib
-            results_dir = pathlib.Path("artifacts/results")
-            rows = []
-            for p in sorted(results_dir.glob("*.json")):
-                rows.append(json.loads(p.read_text(encoding="utf-8")))
-            out = {"generated_at": __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()), "rows": rows}
-            path = pathlib.Path("compatibility_matrix.json")
-            path.write_text(json.dumps(out, indent=2), encoding="utf-8")
-            print(f"Wrote {path}")
-            PY
+          import json, pathlib
+          results_dir = pathlib.Path("artifacts/results")
+          rows = []
+          for p in sorted(results_dir.glob("*.json")):
+              rows.append(json.loads(p.read_text(encoding="utf-8")))
+          out = {"generated_at": __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()), "rows": rows}
+          path = pathlib.Path("compatibility_matrix.json")
+          path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+          print(f"Wrote {path}")
+          PY
 
       - name: Create PR with updated matrix
         uses: peter-evans/create-pull-request@v6
