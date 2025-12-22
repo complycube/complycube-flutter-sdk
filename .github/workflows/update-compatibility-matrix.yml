@@ -1,13 +1,10 @@
 name: Update Compatibility Matrix
 
 on:
-  # workflow_dispatch:
-  # schedule:
-  #   - cron: '0 3 * * 1'
-  pull_request:
-  push:
-    branches: [ "**" ]
-
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'
+  
 permissions:
   contents: write
   pull-requests: write
