@@ -123,19 +123,6 @@ Open `lib/main.dart` and replace:
 
 > Do not commit real credentials.
 
-### Option B (recommended): use `--dart-define`
-
-Run:
-
-```bash
-flutter run \
-  --dart-define=COMPLYCUBE_CLIENT_ID=YOUR_CLIENT_ID \
-  --dart-define=COMPLYCUBE_SDK_TOKEN=YOUR_SDK_TOKEN
-
-```
-
-(We can align the sample code to read from `String.fromEnvironment(...)` if it doesn’t already.)
-
 ## Run the app
 
 ### Run on Android
