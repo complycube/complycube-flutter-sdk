@@ -8,6 +8,8 @@ void main() {
   runApp(const MyApp());
 }
 
+enum VerificationStatus { PENDING, COMPLETED, FAILED }
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -19,26 +21,51 @@ class _MyAppState extends State<MyApp> {
 
   StreamSubscription<ComplyCubeEvent>? _sub;
   String _status = 'idle';
+  late final AppLifecycleListener _listener;
+  VerificationStatus _currentStatus = VerificationStatus.PENDING;
 
   @override
   void initState() {
     super.initState();
+
+    _listener = AppLifecycleListener(
+      onResume: () {
+        // This is called when the app returns to the foreground
+        print("App Resumed - equivalent to onResume");
+        if(_currentStatus == VerificationStatus.PENDING) {
+          // The user returned to the app but we have no status yet
+          // This could mean they abandoned the flow
+          setState(() => _status = 'abandoned');
+          if (kDebugMode) {
+            print('User may have abandoned the verification flow');
+          }
+          _currentStatus = VerificationStatus.FAILED;
+        }
+      },
+      // Optional: detect other transitions
+      onRestart: () => print("App Restarted"),
+    );
+
+
     _sub = ComplyCube.events.listen((evt) {
       if (evt is ComplyCubeSuccess) {
         setState(() => _status = 'success: ${evt.payload}');
         if (kDebugMode) {
           print('success event: ${evt.payload}');
         }
+        _currentStatus = VerificationStatus.COMPLETED;
       } else if (evt is ComplyCubeError) {
         setState(() => _status = 'error ${evt.code}: ${evt.message}');
         if (kDebugMode) {
           print('error event: ${evt.message}');
         }
+        _currentStatus = VerificationStatus.FAILED;
       } else if (evt is ComplyCubeCancelled) {
         setState(() => _status = 'cancelled');
         if (kDebugMode) {
           print('cancelled event: ${evt.reason}');
         }
+        _currentStatus = VerificationStatus.FAILED;
       } else if (evt is ComplyCubeCustom) {
         // optional
         if (kDebugMode) {
@@ -50,6 +77,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    _listener.dispose();
     _sub?.cancel();
     super.dispose();
   }
@@ -63,10 +91,10 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Card(
           child: ListTile(
-            title: Text("Start Flow"),
-            subtitle: Text(""),
+            title: const Text("Start Flow"),
+            subtitle: const Text(""),
             onTap: () async {
-              _start("6875fb819b4d200002899140", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjoiTTJGa056VTNZamMzWTJKa1lqVTBZelUzTVRFd1pEZzVOV1UxTkdNNE0yWXlaVEZsWXpVMk1XWXhNalkwWWpFek1tTmlOalU0TlRnMU5HRXhOVGs0WWprMlpXWXdOV015TkRBNU1EZzBOR0poWWpaaU5EQXdOVGs0T0dNNE1XTTJOek5sWWpJNU1XUXlZamd3TlRZMk5qTTBOREJrTm1KaVpUSTFOekkxTnpGa05XUTRNamt3TVRabE5EUmpabVk0WVdWbE5UWm1Nell5TlRabU5qRmpNVGRsTVdJMU9UaGlNekkyT1RjeVl6VmxaRGsxTkdZeE9XVTNZakkxWmpZM1pUaGtPV0UxWVRnellqTTNNekl6TjJJNU5UbGxZakJrTnpBeE5EYzRaRE5rWVRZNE1XTXdNbVUyWWpkbFpEQTFZVFk0TmpNMFl6QTBPV1EyWVRCa01HWmhNamxtWW1JMVpUZGlNalZrTW1RME9EQTBaVGRrTWpVd01UZzBObUZsIiwiZW52aXJvbm1lbnQiOiJsaXZlIiwidXJscyI6eyJhcGkiOiJodHRwczovL2FwaS5jb21wbHljdWJlLmNvbSIsInN5bmMiOiJ3c3M6Ly94ZHMuY29tcGx5Y3ViZS5jb20iLCJjcm9zc0RldmljZSI6Imh0dHBzOi8veGQuY29tcGx5Y3ViZS5jb20ifSwib3B0aW9ucyI6eyJoaWRlQ29tcGx5Q3ViZUxvZ28iOmZhbHNlLCJlbmFibGVDdXN0b21Mb2dvIjp0cnVlLCJlbmFibGVUZXh0QnJhbmQiOnRydWUsImVuYWJsZUN1c3RvbUNhbGxiYWNrcyI6dHJ1ZSwiZW5hYmxlTmZjIjp0cnVlLCJpZGVudGl0eUNoZWNrTGl2ZW5lc3NBdHRlbXB0cyI6NSwiZG9jdW1lbnRJbmZsaWdodFRlc3RBdHRlbXB0cyI6MiwibmZjUmVhZEF0dGVtcHRzIjo1LCJlbmFibGVBZGRyZXNzQXV0b2NvbXBsZXRlIjp0cnVlLCJlbmFibGVXaGl0ZUxhYmVsaW5nIjpmYWxzZX0sImlhdCI6MTc2NTc4ODM0MSwiZXhwIjoxNzY1NzkxOTQxfQ.Wn4sGvGra19FbB7PlsMniAYV_4Sm9H3KxcMox9JfsP4", "IGNORE_THIS_WORKFLOW_ID");
+              _start("69662ca82b64c6000268004b", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjoiTTJGa056VTNZamMzWTJKa1lqVTBZelUzTVRFd1pEZzVOV1UxTkdNNE0yWXlaVEZsWXpVMk1XWXhNalkwWWpFek1tTmlOalU0TlRnMU5HRXhOVGs0WW1JM1lUY3dZVGcwWlRVMFlUVTNOMkl3WldSbE9HWTRNREkwTnpVME5EVXlORFEzTldRek1HUmxOalV3TVdRd09UWm1ZekkwTUdJM01XVmxPVGd6WkRRek9EVTNZbU15WVdKaU56WTRNekJpT0RNd04yTmlZMlV3WlRsaE1EWmpabVZpT1RrNU5XTTBaVGN4TURjelptRmtNMlUwTmpZNE1UUXhOMkZoT1RjMk4yTmlORGMzT0dWbFpXUmlZV1U0T1dWbU16bGxaalJrWm1ZME5HWTBNalEyTUROaE5USTVNMlUzTnpobU9XVTJNams1WWpWbE5qRm1OakUxWVRoa1pUUmxZV1JrTnpReE5UZ3pPVGcxTWpnd1pXRXpORGxqTXpZd09URTJaVGs1IiwiZW52aXJvbm1lbnQiOiJsaXZlIiwidXJscyI6eyJhcGkiOiJodHRwczovL2FwaS5jb21wbHljdWJlLmNvbSIsInN5bmMiOiJ3c3M6Ly94ZHMuY29tcGx5Y3ViZS5jb20iLCJjcm9zc0RldmljZSI6Imh0dHBzOi8veGQuY29tcGx5Y3ViZS5jb20ifSwib3B0aW9ucyI6eyJoaWRlQ29tcGx5Q3ViZUxvZ28iOmZhbHNlLCJlbmFibGVDdXN0b21Mb2dvIjp0cnVlLCJlbmFibGVUZXh0QnJhbmQiOnRydWUsImVuYWJsZUN1c3RvbUNhbGxiYWNrcyI6dHJ1ZSwiZW5hYmxlTmZjIjp0cnVlLCJpZGVudGl0eUNoZWNrTGl2ZW5lc3NBdHRlbXB0cyI6NSwiZG9jdW1lbnRJbmZsaWdodFRlc3RBdHRlbXB0cyI6MiwibmZjUmVhZEF0dGVtcHRzIjo1LCJlbmFibGVBZGRyZXNzQXV0b2NvbXBsZXRlIjp0cnVlLCJlbmFibGVXaGl0ZUxhYmVsaW5nIjpmYWxzZX0sImlhdCI6MTc2ODMxODgyOCwiZXhwIjoxNzY4MzIyNDI4fQ.yEHlAY_Q1tgCkOAQq2S7aSJGiO_tOzkXl6XywHpEH_Q", "IGNORE_THIS_WORKFLOW_ID");
             },
           ),
         ),
@@ -90,34 +118,44 @@ class _MyAppState extends State<MyApp> {
           "title": "Terms of Service",
           "message": "Complete your identity verification to start trading with Green Bank."
         },
-        // {
-        //   "name": "documentCapture",
-        //   "title": "Document Capture",
-        //   "nfcEnabled": false,
-        //   "showGuidance": false,
-        //   "useLiveCaptureOnly": false,
-        //   "useMLAssistance": true,
-        //   "retryLimit": 1,
-        //   "documentTypes": {
-        //     "passport": true,
-        //     "driving_license": ["GB", "FR"],
-        //     "national_identity_card": ["GB", "FR"],
-        //     "residence_permit": ["GB", "FR"]
-        //   }
-        // },
+        {
+          "name": "documentCapture",
+          "title": "Document Capture",
+          "nfcEnabled": true,
+          "showGuidance": true,
+          "useLiveCaptureOnly": false,
+          "useMLAssistance": true,
+          "isNFCEnabled":true,
+          "retryLimit": 1,
+          "documentTypes": {
+            "passport": true,
+            "driving_license": ["GB", "FR"],
+            "national_identity_card": ["GB", "FR"],
+            "residence_permit": ["GB", "FR"]
+          }
+        },
+        {"name": "addressCapture", "useAutoComplete": true, "allowedCountries": ["GB"]},
+        {
+          "name": "poaCapture",
+          "documentTypes": {"bank_statement": true, "utility_bill": true, "driving_license": true, "tax_document": true},
+          "showGuidance": true,
+          "useLiveCaptureOnly": false,
+          "retryLimit": 1,
+          "isAddressCaptureEnabled": false
+        },
+        {
+          "name": "faceCapture",
+          "mode": "photo",
+          "showGuidance": false,
+          "useLiveCaptureOnly": false,
+          "useMLAssistance": true,
+          "retryLimit": 1
+        },
         // {
         //   "name": "faceCapture",
         //   "mode": "photo",
         //   "showGuidance": false,
-        //   "useLiveCaptureOnly": false,
-        //   "useMLAssistance": true,
-        //   "retryLimit": 1
-        // },
-        // {
-        //   "name": "faceCapture",
-        //   "mode": "video",
-        //   "showGuidance": false,
-        //   "useLiveCaptureOnly": false,
+        //   "useLiveCaptureOnly": true,
         //   "useMLAssistance": true,
         //   "retryLimit": 1
         // },
@@ -133,12 +171,32 @@ class _MyAppState extends State<MyApp> {
         //   "retryLimit": 1,
         //   "isAddressCaptureEnabled": true
         // },
-        {
-          "name": "addressCapture",
-          "allowedCountries": ["GB"],
-          "useAutoComplete": true
-        },
+        // {
+        //   "name": "addressCapture",
+        //   "allowedCountries": ["GB"],
+        //   "useAutoComplete": true
+        // },
       ],
+      "lookAndFeel": {
+        "isDarkMode": false,
+        "borderRadius": 30,
+        "uiInterfaceStyle": "light",
+        "primaryButtonBgColor": "#09EB7E",
+        "primaryButtonBorderColor": "#FFFFFF",
+        "primaryButtonPressedBgColor": "#08DB7D",
+        "primaryButtonTextColor": "#011E3C",
+        "secondaryButtonBgColor": "#F6F6F6",
+        "secondaryButtonTextColor": "#000000",
+        "linkButtonTextColor": "#000000",
+        "headingTextColor": "#000000",
+        "errorPanelBgColor": "#FFFFFF",
+        "documentTypeSelectorBorderColor": "#808080",
+        "documentTypeSelectorBgColor": "#FFFFFF",
+        "documentTypeSelectorIconColor": "#09EB7E",
+        "documentTypeSelectorTitleTextColor": "#000000",
+        "documentTypeSelectorDescriptionTextColor": "#000000",
+        "backgroundContentColor": "#09EB7E"
+      }
       // "lookAndFeel": {
       //   "borderRadius": 16,
       //   "enableAnimations": false,
