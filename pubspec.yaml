@@ -17,8 +17,6 @@ dependencies:
   flutter:
     sdk: flutter
   complycube: ^1.0.2
-#  complycube:
-#      path: /Users/aniket.indulkar/Documents/GitHub/complycube-sdk-flutter-internal
 
     # When depending on this package from a real application you should use:
     #   complycube: ^x.y.z
