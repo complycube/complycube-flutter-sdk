@@ -4,7 +4,7 @@ A public sample app demonstrating how to integrate and run the ComplyCube Flutte
 document capture (ID + proof of address) and selfie/biometrics.
 
 > If you're looking to integrate the SDK into your own app, see the integration guide:
-> https://docs.complycube.com/documentation/guides/mobile-sdk-guide/mobile-sdk-integration-guide
+> [https://docs.complycube.com/sdks/mobile-integrations/flutter-sdk](https://docs.complycube.com/sdks/mobile-integrations/flutter-sdk)
 
 ### Table of contents
 - [Quick start](#quick-start)
