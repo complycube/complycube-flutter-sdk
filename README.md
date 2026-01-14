@@ -35,8 +35,6 @@ document capture (ID + proof of address) and selfie/biometrics.
     ```
 ## Prerequisites
 
-> **Supported Flutter versions:** TODO (we will link to the compatibility matrix once created)
-
 ### Android prerequisites
 
 -   Flutter SDK installed and on PATH:
@@ -231,16 +229,6 @@ flutter run
 ### “Works on my machine” differences
 
 This repo uses the Gradle Wrapper (`android/gradlew`) to keep Gradle consistent between machines. Avoid running system Gradle directly.
-
-## Compatibility matrix
-
-See: `COMPATIBILITY.md` (TODO: add in Task 3)
-
-This document lists the Flutter + Android build toolchain combinations that are tested in CI.
-
-## Support
-
-- 📌 Compatibility Matrix: [COMPATIBILITY.md](./COMPATIBILITY.md)
 
 If you hit an issue:
 
