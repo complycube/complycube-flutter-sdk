@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       onResume: () {
         // This is called when the app returns to the foreground
         print("App Resumed - equivalent to onResume");
-        if(_currentStatus == VerificationStatus.PENDING) {
+        if (_currentStatus == VerificationStatus.PENDING) {
           // The user returned to the app but we have no status yet
           // This could mean they abandoned the flow
           setState(() => _status = 'abandoned');
@@ -94,7 +94,9 @@ class _MyAppState extends State<MyApp> {
             title: const Text("Start Flow"),
             subtitle: const Text(""),
             onTap: () async {
-              _start("69662ca82b64c6000268004b", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjoiTTJGa056VTNZamMzWTJKa1lqVTBZelUzTVRFd1pEZzVOV1UxTkdNNE0yWXlaVEZsWXpVMk1XWXhNalkwWWpFek1tTmlOalU0TlRnMU5HRXhOVGs0WW1JM1lUY3dZVGcwWlRVMFlUVTNOMkl3WldSbE9HWTRNREkwTnpVME5EVXlORFEzTldRek1HUmxOalV3TVdRd09UWm1ZekkwTUdJM01XVmxPVGd6WkRRek9EVTNZbU15WVdKaU56WTRNekJpT0RNd04yTmlZMlV3WlRsaE1EWmpabVZpT1RrNU5XTTBaVGN4TURjelptRmtNMlUwTmpZNE1UUXhOMkZoT1RjMk4yTmlORGMzT0dWbFpXUmlZV1U0T1dWbU16bGxaalJrWm1ZME5HWTBNalEyTUROaE5USTVNMlUzTnpobU9XVTJNams1WWpWbE5qRm1OakUxWVRoa1pUUmxZV1JrTnpReE5UZ3pPVGcxTWpnd1pXRXpORGxqTXpZd09URTJaVGs1IiwiZW52aXJvbm1lbnQiOiJsaXZlIiwidXJscyI6eyJhcGkiOiJodHRwczovL2FwaS5jb21wbHljdWJlLmNvbSIsInN5bmMiOiJ3c3M6Ly94ZHMuY29tcGx5Y3ViZS5jb20iLCJjcm9zc0RldmljZSI6Imh0dHBzOi8veGQuY29tcGx5Y3ViZS5jb20ifSwib3B0aW9ucyI6eyJoaWRlQ29tcGx5Q3ViZUxvZ28iOmZhbHNlLCJlbmFibGVDdXN0b21Mb2dvIjp0cnVlLCJlbmFibGVUZXh0QnJhbmQiOnRydWUsImVuYWJsZUN1c3RvbUNhbGxiYWNrcyI6dHJ1ZSwiZW5hYmxlTmZjIjp0cnVlLCJpZGVudGl0eUNoZWNrTGl2ZW5lc3NBdHRlbXB0cyI6NSwiZG9jdW1lbnRJbmZsaWdodFRlc3RBdHRlbXB0cyI6MiwibmZjUmVhZEF0dGVtcHRzIjo1LCJlbmFibGVBZGRyZXNzQXV0b2NvbXBsZXRlIjp0cnVlLCJlbmFibGVXaGl0ZUxhYmVsaW5nIjpmYWxzZX0sImlhdCI6MTc2ODMxODgyOCwiZXhwIjoxNzY4MzIyNDI4fQ.yEHlAY_Q1tgCkOAQq2S7aSJGiO_tOzkXl6XywHpEH_Q", "IGNORE_THIS_WORKFLOW_ID");
+              _start("69662ca82b64c6000268004b",
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjoiTTJGa056VTNZamMzWTJKa1lqVTBZelUzTVRFd1pEZzVOV1UxTkdNNE0yWXlaVEZsWXpVMk1XWXhNalkwWWpFek1tTmlOalU0TlRnMU5HRXhOVGs0WW1JM1lUY3dZVGcwWlRVMFlUVTNOMkl3WldSbE9HWTRNREkwTnpVME5EVXlORFEzTldRek1HUmxOalV3TVdRd09UWm1ZekkwTUdJM01XVmxPVGd6WkRRek9EVTNZbU15WVdKaU56WTRNekJpT0RNd04yTmlZMlV3WlRsaE1EWmpabVZpT1RrNU5XTTBaVGN4TURjelptRmtNMlUwTmpZNE1UUXhOMkZoT1RjMk4yTmlORGMzT0dWbFpXUmlZV1U0T1dWbU16bGxaalJrWm1ZME5HWTBNalEyTUROaE5USTVNMlUzTnpobU9XVTJNams1WWpWbE5qRm1OakUxWVRoa1pXTm1NRFU1WkRNMU5HVmhaVFl3TWpRNE56WTBPR1psT0RJMllUY3hNek5qIiwiZW52aXJvbm1lbnQiOiJsaXZlIiwidXJscyI6eyJhcGkiOiJodHRwczovL2FwaS5jb21wbHljdWJlLmNvbSIsInN5bmMiOiJ3c3M6Ly94ZHMuY29tcGx5Y3ViZS5jb20iLCJjcm9zc0RldmljZSI6Imh0dHBzOi8veGQuY29tcGx5Y3ViZS5jb20ifSwib3B0aW9ucyI6eyJoaWRlQ29tcGx5Q3ViZUxvZ28iOmZhbHNlLCJlbmFibGVDdXN0b21Mb2dvIjp0cnVlLCJlbmFibGVUZXh0QnJhbmQiOnRydWUsImVuYWJsZUN1c3RvbUNhbGxiYWNrcyI6dHJ1ZSwiZW5hYmxlTmZjIjp0cnVlLCJpZGVudGl0eUNoZWNrTGl2ZW5lc3NBdHRlbXB0cyI6NSwiZG9jdW1lbnRJbmZsaWdodFRlc3RBdHRlbXB0cyI6MiwibmZjUmVhZEF0dGVtcHRzIjo1LCJlbmFibGVBZGRyZXNzQXV0b2NvbXBsZXRlIjp0cnVlLCJlbmFibGVXaGl0ZUxhYmVsaW5nIjpmYWxzZX0sImlhdCI6MTc3NDg3MTE5MCwiZXhwIjoxNzc0ODc0NzkwfQ.sZm7w8-34t-sKq90uR9_vyp0we7b4sp9CeZsZfuHR_w",
+                  "IGNORE_THIS_WORKFLOW_ID");
             },
           ),
         ),
@@ -109,48 +111,62 @@ class _MyAppState extends State<MyApp> {
       // "workflowTemplateId": workflowId,
       "stages": [
         {
-          "name": "intro",
-          "title": "Green Bank ID verification",
-          "message": "We will now verify your identity so you can start trading."
+          "name": 'intro',
+          "heading": 'Remit KYC verification',
+          'title': 'Identity Verification',
+          "message": "We will now verify your identity so you can do payments."
         },
         {
-          "name": "consent",
-          "title": "Terms of Service",
-          "message": "Complete your identity verification to start trading with Green Bank."
+          "name":"consent"
         },
         {
-          "name": "documentCapture",
-          "title": "Document Capture",
-          "nfcEnabled": true,
+          "title": "Compliance ID Verification",
+          "name": 'documentCapture',
           "showGuidance": true,
-          "useLiveCaptureOnly": false,
-          "useMLAssistance": true,
-          "isNFCEnabled":true,
+          "useLiveCaptureOnly": true,
           "retryLimit": 1,
           "documentTypes": {
             "passport": true,
-            "driving_license": ["GB", "FR"],
-            "national_identity_card": ["GB", "FR"],
-            "residence_permit": ["GB", "FR"]
-          }
+            "driving_license": ["GB"],
+          },
         },
-        {"name": "addressCapture", "useAutoComplete": true, "allowedCountries": ["GB"]},
+        {
+          "title": "Remit Face verifications",
+          "name": "faceCapture",
+          "mode": "photo",
+          "useMLAssistance": true,
+          "showGuidance": true,
+          "retryLimit": 1
+        },
+        // {"name": "addressCapture", "useAutoComplete": true, "allowedCountries": ["GB"]},
         {
           "name": "poaCapture",
-          "documentTypes": {"bank_statement": true, "utility_bill": true, "driving_license": true, "tax_document": true},
+          "documentTypes": {
+            "bank_statement": true,
+            "utility_bill": true,
+            "driving_license": true,
+            "tax_document": true
+          },
           "showGuidance": true,
           "useLiveCaptureOnly": false,
           "retryLimit": 1,
-          "isAddressCaptureEnabled": false
+          "isAddressCaptureEnabled": true
         },
-        {
-          "name": "faceCapture",
-          "mode": "photo",
-          "showGuidance": false,
-          "useLiveCaptureOnly": false,
-          "useMLAssistance": true,
-          "retryLimit": 1
-        },
+        // "complete",
+        // {
+        //   "name": "complete",
+        //   "title": "Success!",
+        //   "message": "You're all set"
+        // }
+        // {"name": "addressCapture", "useAutoComplete": true, "allowedCountries": ["GB"]},
+        // {
+        //   "name": "poaCapture",
+        //   "documentTypes": {"bank_statement": true, "utility_bill": true, "driving_license": true, "tax_document": true},
+        //   "showGuidance": true,
+        //   "useLiveCaptureOnly": false,
+        //   "retryLimit": 1,
+        //   "isAddressCaptureEnabled": false
+        // },
         // {
         //   "name": "faceCapture",
         //   "mode": "photo",
@@ -179,23 +195,30 @@ class _MyAppState extends State<MyApp> {
       ],
       "lookAndFeel": {
         "isDarkMode": false,
-        "borderRadius": 30,
         "uiInterfaceStyle": "light",
         "primaryButtonBgColor": "#09EB7E",
         "primaryButtonBorderColor": "#FFFFFF",
-        "primaryButtonPressedBgColor": "#08DB7D",
         "primaryButtonTextColor": "#011E3C",
         "secondaryButtonBgColor": "#F6F6F6",
         "secondaryButtonTextColor": "#000000",
-        "linkButtonTextColor": "#000000",
+        "secondaryButtonBorderColor": "#000000",
         "headingTextColor": "#000000",
-        "errorPanelBgColor": "#FFFFFF",
+        "editTextColor": "#808080",
+        "errorPanelColor": "#F2F2F2",
+        "errorPanelBgColor": "#F2F2F2",
+        "errorPanelIconColor": "#D32F2F",
+        "errorPanelTitleTextColor": "#D32F2F",
+        "errorPanelDescriptionTextColor": "#D32F2F",
+        "errorPopupColor": "#D32F2F",
+        "errorPopupIconColor": "#D32F2F",
+        "errorPopupTitleTextColor": "#D32F2F",
+        "errorPopupDescriptionTextColor": "#D32F2F",
         "documentTypeSelectorBorderColor": "#808080",
         "documentTypeSelectorBgColor": "#FFFFFF",
         "documentTypeSelectorIconColor": "#09EB7E",
         "documentTypeSelectorTitleTextColor": "#000000",
         "documentTypeSelectorDescriptionTextColor": "#000000",
-        "backgroundContentColor": "#09EB7E"
+        "borderRadius": 30
       }
       // "lookAndFeel": {
       //   "borderRadius": 16,

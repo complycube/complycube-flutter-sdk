@@ -45,5 +45,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We use your photo library to upload identity documents for verification.</string>
+
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>We save captured images to your photo library if you choose.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We use the camera to capture identity documents and selfies for verification.</string>
+
 </dict>
 </plist>
