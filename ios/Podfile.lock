@@ -1,14 +1,23 @@
 PODS:
+  - Analytics (4.1.0)
+  - AppAuth (2.0.0):
+    - AppAuth/Core (= 2.0.0)
+    - AppAuth/ExternalUserAgent (= 2.0.0)
+  - AppAuth/Core (2.0.0)
+  - AppAuth/ExternalUserAgent (2.0.0):
+    - AppAuth/Core
   - complycube (0.2.3):
     - ComplyCubeMobileSDK
     - Flutter
-  - ComplyCubeMobileSDK (2.0.2):
-    - FingerprintPro (= 2.11.0)
+  - ComplyCubeMobileSDK (2.0.7):
+    - Analytics (= 4.1)
+    - AppAuth (= 2.0.0)
+    - FingerprintPro (= 2.12.0)
     - GooglePlaces (= 7.4.0)
     - JWTDecode (= 2.6.3)
     - lottie-ios (= 4.5.1)
     - Sentry (= 8.49.0)
-  - FingerprintPro (2.11.0)
+  - FingerprintPro (2.12.0)
   - Flutter (1.0.0)
   - GooglePlaces (7.4.0)
   - JWTDecode (2.6.3)
@@ -23,6 +32,8 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Analytics
+    - AppAuth
     - ComplyCubeMobileSDK
     - FingerprintPro
     - GooglePlaces
@@ -37,10 +48,12 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  complycube: 45e9a0f9de45d7e4b298899df00034e4cc5b6f3b
-  ComplyCubeMobileSDK: 0f263cd90b63f2ffc8a683258aa787cfc4a29671
-  FingerprintPro: 2fbd0cda75fbab32055f7cb38bc5fc9d17168979
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Analytics: 21202e6dee8b74c73944084d2f876ce5cfd65e07
+  AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
+  complycube: 37f1b1ce7f86f039f54022b50dec11b8f749ff8a
+  ComplyCubeMobileSDK: fab2c953cf6cfe4554da5573378a7f9addd8efdd
+  FingerprintPro: 035517a1b4e3e4fc073486b53b9956509010f8db
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   GooglePlaces: 544e908d94860bf6f8fc1865b80d2c7eb6b5f937
   JWTDecode: 33e5e26e5ddbd21b2065820894c08fef0cad9509
   lottie-ios: 248b380fa1b97d18e792c37d90da7ab2aa0d6562
